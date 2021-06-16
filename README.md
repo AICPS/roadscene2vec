@@ -1,6 +1,6 @@
-# sg2vec
+# sg2vec: A Tool for Extracting and Embedding Road Scene-Graphs
 ## Description
-A Tool for Extracting and Embedding Road Scene-Graphs
+TODO
 
 ---
 ## General Python Setup
