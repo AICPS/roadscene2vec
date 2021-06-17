@@ -89,7 +89,7 @@ six==1.15.0
 smmap==3.0.5
 subprocess32==3.5.4
 tensorboard==1.15.0
-tensorflow==1.13.1
+tensorflow==2.4.2
 tensorflow-estimator==1.13.0
 termcolor==1.1.0
 tifffile==2020.8.25
