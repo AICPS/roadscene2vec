@@ -1,0 +1,14 @@
+---
+learning_rate: 0.001 # The initial learning rate for the model.
+seed: 0 # Random seed.
+epochs: 200 # Number of epochs to train.
+hidden: 200 # Number of hidden units.
+dropout: 0.5 # Dropout rate (1 - keep probability).
+batch_size: 4 # Number of graphs in a batch.
+num_layer: 2 # Number of layers in the neural network.
+test_step: 10 # The interval between mini evaluation along the training process.
+pooling_type: "topk" # Graph pooling type.
+readout_type: "max" # Readout type.
+ratio: 0.8 # Dataset splitting ratio
+poolratio: 0.8 # Ratio for graph pooling.
+embed_dim: 2 # The dimension of graph embeddings.

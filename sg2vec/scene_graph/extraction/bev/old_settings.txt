@@ -1,0 +1,48 @@
+# Old settings used in the paper
+
+#SETTINGS FOR 1280x720 CARLA IMAGES:
+IMAGE_H = 720
+IMAGE_W = 1280
+CROPPED_H = 350 #height of ROI. crops to lane area of carla images
+BIRDS_EYE_IMAGE_H = 850
+BIRDS_EYE_IMAGE_W = 1280
+PROJ_RATIO = 33       # scale steepness of v-projection (must be odd)
+PROJ_SPACING = 0     # determine amount of spacing at the base of the v
+Y_SCALE = 0.55 #18 pixels = length of lane line (10 feet)
+X_SCALE = 0.54 #22 pixels = width of lane (12 feet)
+
+
+# SETTINGS FOR 1280x720 HONDA IMAGES:
+IMAGE_H = 720
+IMAGE_W = 1280
+CROPPED_H = 390
+BIRDS_EYE_IMAGE_H = 620
+BIRDS_EYE_IMAGE_W = 1280
+PROJ_RATIO = 33       # scale steepness of v-projection (must be odd)
+PROJ_SPACING = 0     # determine amount of spacing at the base of the v
+Y_SCALE = 0.45  # 22 pixels = length of lane line (10 feet)
+X_SCALE = 0.46  # 26 pixels = width of lane (12 feet)
+
+# SETTINGS FOR 1280x720 TRAFFIC ANOMALY IMAGES:
+IMAGE_H = 720
+IMAGE_W = 1280
+CROPPED_H = 200
+BIRDS_EYE_IMAGE_H = IMAGE_H - 144
+BIRDS_EYE_IMAGE_W = 1280
+PROJ_RATIO = 3      # scale steepness of v-projection (must be odd)
+PROJ_SPACING = 0    # determine amount of spacing at the base of the v
+Y_SCALE = 0.14*2    # 72 pixels * moe = length of lane line (10 feet)
+X_SCALE = 0.09*1.8  # 140 pixels * moe = width of lane (12 feet)
+
+H_OFFSET = IMAGE_H - CROPPED_H  # offset from top of image to start of ROI
+
+CAR_PROXIMITY_THRESH_NEAR_COLL = 4
+# max number of feet between a car and another entity to build proximity relation
+CAR_PROXIMITY_THRESH_SUPER_NEAR = 7
+CAR_PROXIMITY_THRESH_VERY_NEAR = 10
+CAR_PROXIMITY_THRESH_NEAR = 16
+CAR_PROXIMITY_THRESH_VISIBLE = 25
+
+LANE_THRESHOLD = 6  # feet. if object's center is more than this distance away from ego's center, build left or right lane relation
+# feet. if object's center is within this distance of ego's center, build middle lane relation
+CENTER_LANE_THRESHOLD = 9

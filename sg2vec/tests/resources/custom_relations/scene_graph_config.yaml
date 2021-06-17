@@ -1,0 +1,25 @@
+---
+dataset_type: 'carla'
+location_data:
+    input_path: 'C:/av_data/preprocessed_dataset.pkl'
+    data_save_path: 'C:/av_data/sg_dataset.pkl' #where to save scenegraph dataset
+    #TODO: revise this configuration file
+
+relation_extraction_settings:
+  framenum: 1000
+  ACTOR_NAMES: ['car','moto','bicycle','ped','lane','light','sign', 'road']
+  extract_directional_relations: False
+  extract_distance_relations: False
+  CAR_PROXIMITY_THRESH_NEAR_COLL: 3
+  CAR_PROXIMITY_THRESH_SUPER_NEAR: 7 # max number of feet between a car and another entity to build proximity relation
+  CAR_PROXIMITY_THRESH_VERY_NEAR: 10
+  CAR_PROXIMITY_THRESH_NEAR: 16
+  CAR_PROXIMITY_THRESH_VISIBLE: 25
+  MOTO_PROXIMITY_THRESH: 50
+  BICYCLE_PROXIMITY_THRESH: 50
+  LANE_THRESHOLD: 6 #feet. if object's center is more than this distance away from ego's center, build left or right lane relation
+  CENTER_LANE_THRESHOLD: 9
+  PED_PROXIMITY_THRESH: 50
+  MOTO_NAMES: ["Harley-Davidson", "Kawasaki", "Yamaha"]
+  BICYCLE_NAMES: ["Gazelle", "Diamondback", "Bh"]
+  CAR_NAMES: ["Ford", "Bmw", "Toyota", "Nissan", "Mini", "Tesla", "Seat", "Lincoln", "Audi", "Carlamotors", "Citroen", "Mercedes-Benz", "Chevrolet", "Volkswagen", "Jeep", "Nissan", "Dodge", "Mustang"]

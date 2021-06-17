@@ -1,0 +1,8 @@
+---
+dataset_type: 'image'
+location_data:
+    #TODO: revise this configuration file
+    input_path: '/louisccc\av\honda_data\filtered_clips\lanechange'
+    data_save_path: '.../preprocessed_dataset_real.pkl'
+frame_data:
+    frames_limit: 5

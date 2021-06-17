@@ -1,0 +1,38 @@
+---
+dataset_type: 'image'
+location_data:
+    input_path: 'C:/av_data/preprocessed_dataset_real.pkl'
+    
+    data_save_path: 'C:/av_data/sg_dataset_real.pkl' #where to save scenegraph dataset
+    #TODO: revise this configuration file
+
+relation_extraction_settings:
+  framenum: 1000
+  ACTOR_NAMES: ['car','moto','bicycle','ped','lane','light','sign', 'road']
+  extract_directional_relations: False
+  extract_distance_relations: False
+  CAR_PROXIMITY_THRESH_NEAR_COLL: 3
+  CAR_PROXIMITY_THRESH_SUPER_NEAR: 7 # max number of feet between a car and another entity to build proximity relation
+  CAR_PROXIMITY_THRESH_VERY_NEAR: 10
+  CAR_PROXIMITY_THRESH_NEAR: 16
+  CAR_PROXIMITY_THRESH_VISIBLE: 25
+  MOTO_PROXIMITY_THRESH: 50
+  LANE_THRESHOLD: 6 #feet. if object's center is more than this distance away from ego's center, build left or right lane relation
+  CENTER_LANE_THRESHOLD: 9
+  BICYCLE_PROXIMITY_THRESH: 50
+  PED_PROXIMITY_THRESH: 50
+  MOTO_NAMES: ["Harley-Davidson", "Kawasaki", "Yamaha"]
+  BICYCLE_NAMES: ["Gazelle", "Diamondback", "Bh"]
+  CAR_NAMES: ["Ford", "Bmw", "Toyota", "Nissan", "Mini", "Tesla", "Seat", "Lincoln", "Audi", "Carlamotors", "Citroen", "Mercedes-Benz", "Chevrolet", "Volkswagen", "Jeep", "Nissan", "Dodge", "Mustang"]
+  
+image_setttings: #currently tuned for Honda
+    BEV_PATH: '../scene_graph/extraction/bev/bev.json' 
+    # Below is deprecated actual settings located in bev path
+    IMAGE_H : 720
+    IMAGE_W : 1280
+    CROPPED_H : 390
+    BIRDS_EYE_IMAGE_H : 620
+    BIRDS_EYE_IMAGE_W : 1280
+    Y_SCALE : 0.45  # 22 pixels = length of lane line (10 feet)
+    X_SCALE : 0.46  # 26 pixels = width of lane (12 feet)
+    #H_OFFSET : image_setttings[IMAGE_H] - image_setttings[CROPPED_H] # offset from top of image to start of ROI

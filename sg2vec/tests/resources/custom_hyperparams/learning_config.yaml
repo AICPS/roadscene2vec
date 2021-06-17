@@ -1,0 +1,36 @@
+---
+model_configuration:
+  model: 'mrgcn'
+  num_layers: 3
+training_configuration:
+  scenegraph_dataset_type: 'image' #carla or real
+  n_fold: 2
+  num_of_classes: 8 
+  learning_rate: 0.00005
+  epochs: 200
+  cache_path: '../custom_datasets/271_dataset_image.pkl'
+  transfer_path: ''
+  model_load_path: '../pretrained_models/model.pt'
+  model_save_path: '../pretrained_models/model.pt'
+  split_ratio: 0.3
+  downsample: False
+  seed: 0
+  activation: 'relu'
+  weight_decay: 0.0005
+  dropout: 0.25
+  nclass: 2
+  batch_size: 32
+  device: 'cpu'
+  test_step: 10
+  model: 'mrgcn'
+  conv_type: 'FastRGCNConv'
+  num_layers: 3
+  hidden_dim: 64
+  layer_spec: null
+  pooling_type: 'sagpool'
+  pooling_ratio: 0.5
+  readout_type: 'mean'
+  temporal_type: 'lstm_seq'
+  lstm_input_dim: 50
+  lstm_output_dim: 20
+  stats_path: 'best_stats.csv'
