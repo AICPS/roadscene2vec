@@ -55,7 +55,7 @@ class CNN_LSTM_Classifier(nn.Module):
 
     def forward(self, x):
         # Distribute learnable layers across all frames with shared weights
-        if self.cfg.bnorm: # can use a larger learning rate w/ bnorm #not in config currently
+        if self.cfg.training_configuration['bnorm']: # can use a larger learning rate w/ bnorm #not in config currently
             c1 = F.relu(self.bn1(self.TimeDistributed(self.c1, x)))
             c2 = F.relu(self.bn2(self.TimeDistributed(self.c2, c1)))
             mp1 = self.dropout(self.bn3(self.TimeDistributed(self.mp1, c2)))

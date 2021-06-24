@@ -21,6 +21,9 @@ from tqdm import tqdm
 from learning.model.mrgcn import MRGCN
 from learning.model.mrgin import MRGIN
 from learning.model.cnn import CNN_Classifier
+from learning.model.cnn_lstm import CNN_LSTM_Classifier
+from learning.model.lstm import LSTM_Classifier
+
 from torch_geometric.data import Data, DataLoader, DataListLoader
 from sklearn.utils.class_weight import compute_class_weight
 import warnings
@@ -117,6 +120,12 @@ class Trainer:
             self.model = MRGIN(self.config).to(self.config.training_configuration["device"])
         elif self.config.model_configuration["model"]  == "cnn":
             self.model = CNN_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), self.config).to(self.config.training_configuration["device"])
+        elif self.config.model_configuration["model"]  == "cnn_lstm":
+            self.model = CNN_LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), self.config).to(self.config.training_configuration["device"])
+        elif self.config.model_configuration["model"]  == "lstm":
+            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width),'lstm', self.config).to(self.config.training_configuration["device"])        
+        elif self.config.model_configuration["model"]  == "gru":
+            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), 'gru', self.config).to(self.config.training_configuration["device"]) 
         else:
             raise Exception("model selection is invalid: " + self.config.model_configuration["model"])
         #
@@ -687,116 +696,116 @@ class Scenegraph_Trainer(Trainer):
                 
 class Image_Trainer(Trainer):
     def build_real_image_dataset(self,cache_path, train_to_test_ratio=0.3, downsample=False, seed=0, transfer_path=None):
-          image_dataset = RawImageDataset()
-          image_dataset.dataset_save_path = self.config.location_data["input_path"]
-          self.image_dataset = image_dataset.load()
+        image_dataset = RawImageDataset()
+        image_dataset.dataset_save_path = self.config.location_data["input_path"]
+        self.image_dataset = image_dataset.load()
           
-          self.feature_list = set()
-          for i in range(self.config.training_configuration['num_of_classes']):
-              self.feature_list.add("type_"+str(i))
+        self.feature_list = set()
+        for i in range(self.config.training_configuration['num_of_classes']):
+            self.feature_list.add("type_"+str(i))
               
-          class_0 = []
-          class_1 = []
-          class_0_clip_name = []
-          class_1_clip_name = []
+        class_0 = []
+        class_1 = []
+        class_0_clip_name = []
+        class_1_clip_name = []
           
-          for seq in tqdm(self.image_dataset.labels): # for each seq (num total seq,frame,chan,h,w)
-              category = self.image_dataset.action_types[seq]
-              if category in self.unique_clips:
-                  self.unique_clips[category] += 1
-              else:
-                  self.unique_clips[category] = 1
-              seq_data = np.array(process_cnn_image_data(self.image_dataset.data[seq], self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width))
-              seq_data = torch.from_numpy(seq_data)
-              if self.image_dataset.labels[seq] == 0:
-                  class_0.append((seq_data,0,category))                                                  
-              elif self.image_dataset.labels[seq] == 1:
-                  class_1.append((seq_data,1,category))
-          y_0 = [0]*len(class_0)  
-          y_1 = [1]*len(class_1)
+        for seq in tqdm(self.image_dataset.labels): # for each seq (num total seq,frame,chan,h,w)
+            category = self.image_dataset.action_types[seq]
+            if category in self.unique_clips:
+                self.unique_clips[category] += 1
+            else:
+                self.unique_clips[category] = 1
+            seq_data = np.array(process_cnn_image_data(self.image_dataset.data[seq], self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width))
+            seq_data = torch.from_numpy(seq_data)
+            if self.image_dataset.labels[seq] == 0:
+                class_0.append((seq_data,0,category))                                                  
+            elif self.image_dataset.labels[seq] == 1:
+                class_1.append((seq_data,1,category))
+        y_0 = [0]*len(class_0)  
+        y_1 = [1]*len(class_1)
     
     
-          min_number = min(len(class_0), len(class_1))
+        min_number = min(len(class_0), len(class_1))
           
-          if downsample:
-              modified_class_0, modified_y_0 = resample(class_0, y_0, n_samples=min_number)
-          else:
-              modified_class_0, modified_y_0 = class_0, y_0
-          train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=train_to_test_ratio, shuffle=True, stratify=modified_y_0+y_1, random_state=seed)
-          if self.config.location_data["transfer_path"] != None:#what is this meant to do if input path is meant to load in sq dataset obj?
-              test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
-              image_sequence = class_1+class_0
-              return image_sequence, test, self.feature_list 
-          #dont do kfold here instead it is done when learn() is called
-          return train, test, self.feature_list # redundant return of self.feature_list                    
+        if downsample:
+            modified_class_0, modified_y_0 = resample(class_0, y_0, n_samples=min_number)
+        else:
+            modified_class_0, modified_y_0 = class_0, y_0
+        train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=train_to_test_ratio, shuffle=True, stratify=modified_y_0+y_1, random_state=seed)
+        if self.config.location_data["transfer_path"] != None:#what is this meant to do if input path is meant to load in sq dataset obj?
+            test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
+            image_sequence = class_1+class_0
+            return image_sequence, test, self.feature_list 
+        #dont do kfold here instead it is done when learn() is called
+        return train, test, self.feature_list # redundant return of self.feature_list                    
               
     def model_inference(self, X, y, clip_name):
-          labels = torch.LongTensor().to(self.config.training_configuration['device'])
-          outputs = torch.FloatTensor().to(self.config.training_configuration['device'])
-          # Dictionary storing (output, label) pair for all driving categories
-          categories = dict.fromkeys(self.unique_clips)
-          for key, val in categories.items():
-              categories[key] = {'outputs': outputs, 'labels': labels}
-          batch_size = self.config.training_configuration['batch_size'] # NOTE: set to 1 when profiling or calculating inference time.
-          acc_loss = 0
-          inference_time = 0
-          prof_result = ""
+        labels = torch.LongTensor().to(self.config.training_configuration['device'])
+        outputs = torch.FloatTensor().to(self.config.training_configuration['device'])
+        # Dictionary storing (output, label) pair for all driving categories
+        categories = dict.fromkeys(self.unique_clips)
+        for key, val in categories.items():
+            categories[key] = {'outputs': outputs, 'labels': labels}
+        batch_size = self.config.training_configuration['batch_size'] # NOTE: set to 1 when profiling or calculating inference time.
+        acc_loss = 0
+        inference_time = 0
+        prof_result = ""
     
-          with torch.autograd.profiler.profile(enabled=False, use_cuda=True) as prof:
-              with torch.no_grad():
-                  self.model.eval()
+        with torch.autograd.profiler.profile(enabled=False, use_cuda=True) as prof:
+            with torch.no_grad():
+                self.model.eval()
     
-                  for i in range(0, len(X), batch_size): # iterate through subsequences
-                      batch_index = i + batch_size if i + batch_size <= len(X) else len(X)
-                      batch_x, batch_y, batch_clip_name = X[i:batch_index], y[i:batch_index], clip_name[i:batch_index]
-                      batch_x, batch_y = self.toGPU(batch_x, torch.float32), self.toGPU(batch_y, torch.long)
-                      #start = torch.cuda.Event(enable_timing=True)
-                      #end =  torch.cuda.Event(enable_timing=True)
-                      #start.record()
-                      output = self.model.forward(batch_x).view(-1, 2)
-                      #end.record()
-                      #torch.cuda.synchronize()
-                      inference_time += 0#start.elapsed_time(end)
-                      loss_test = self.loss_func(output, batch_y)
-                      acc_loss += loss_test.detach().cpu().item() * len(batch_y)
-                      # store output, label statistics
-                      self.update_categorical_outputs(categories, output, batch_y, batch_clip_name)
+                for i in range(0, len(X), batch_size): # iterate through subsequences
+                    batch_index = i + batch_size if i + batch_size <= len(X) else len(X)
+                    batch_x, batch_y, batch_clip_name = X[i:batch_index], y[i:batch_index], clip_name[i:batch_index]
+                    batch_x, batch_y = self.toGPU(batch_x, torch.float32), self.toGPU(batch_y, torch.long)
+                    #start = torch.cuda.Event(enable_timing=True)
+                    #end =  torch.cuda.Event(enable_timing=True)
+                    #start.record()
+                    output = self.model.forward(batch_x).view(-1, 2)
+                    #end.record()
+                    #torch.cuda.synchronize()
+                    inference_time += 0#start.elapsed_time(end)
+                    loss_test = self.loss_func(output, batch_y)
+                    acc_loss += loss_test.detach().cpu().item() * len(batch_y)
+                    # store output, label statistics
+                    self.update_categorical_outputs(categories, output, batch_y, batch_clip_name)
     
-          # calculate one risk score per sequence (this is not implemented for each category)
-          sum_seq_len = 0
-          num_risky_sequences = 0
-          num_safe_sequences = 0
-          correct_risky_seq = 0
-          correct_safe_seq = 0
-          incorrect_risky_seq = 0
-          incorrect_safe_seq = 0
-          sequences = len(categories['lanechange']['labels'])
-          for indices in range(sequences):
-              seq_output = categories['lanechange']['outputs'][indices]
-              label = categories['lanechange']['labels'][indices]
-              pred = torch.argmax(seq_output)
+        # calculate one risk score per sequence (this is not implemented for each category)
+        sum_seq_len = 0
+        num_risky_sequences = 0
+        num_safe_sequences = 0
+        correct_risky_seq = 0
+        correct_safe_seq = 0
+        incorrect_risky_seq = 0
+        incorrect_safe_seq = 0
+        sequences = len(categories['lanechange']['labels'])
+        for indices in range(sequences):
+            seq_output = categories['lanechange']['outputs'][indices]
+            label = categories['lanechange']['labels'][indices]
+            pred = torch.argmax(seq_output)
               
-              # risky clip
-              if label == 1:
-                  num_risky_sequences += 1
-                  sum_seq_len += seq_output.shape[0]
-                  correct_risky_seq += self.correctness(label, pred)
-                  incorrect_risky_seq += self.correctness(label, pred)
-              # non-risky clip
-              elif label == 0:
-                  num_safe_sequences += 1
-                  incorrect_safe_seq += self.correctness(label, pred)
-                  correct_safe_seq += self.correctness(label, pred)
+            # risky clip
+            if label == 1:
+                num_risky_sequences += 1
+                sum_seq_len += seq_output.shape[0]
+                correct_risky_seq += self.correctness(label, pred)
+                incorrect_risky_seq += self.correctness(label, pred)
+            # non-risky clip
+            elif label == 0:
+                num_safe_sequences += 1
+                incorrect_safe_seq += self.correctness(label, pred)
+                correct_safe_seq += self.correctness(label, pred)
           
-          avg_risky_seq_len = sum_seq_len / num_risky_sequences # sequence length for comparison with the prediction frame metric. 
-          seq_tpr = correct_risky_seq / num_risky_sequences
-          seq_fpr = incorrect_safe_seq / num_safe_sequences
-          seq_tnr = correct_safe_seq / num_safe_sequences
-          seq_fnr = incorrect_risky_seq / num_risky_sequences
-          if prof != None:
-              prof_result = prof.key_averages().table(sort_by="cuda_time_total")
+        avg_risky_seq_len = sum_seq_len / num_risky_sequences # sequence length for comparison with the prediction frame metric. 
+        seq_tpr = correct_risky_seq / num_risky_sequences
+        seq_fpr = incorrect_safe_seq / num_safe_sequences
+        seq_tnr = correct_safe_seq / num_safe_sequences
+        seq_fnr = incorrect_risky_seq / num_risky_sequences
+        if prof != None:
+            prof_result = prof.key_averages().table(sort_by="cuda_time_total")
     
-          return  categories, \
+        return  categories, \
                   acc_loss/len(X), \
                   avg_risky_seq_len, \
                   inference_time, \
@@ -831,34 +840,34 @@ class Image_Trainer(Trainer):
             categories[k]['outputs'] = categories[k]['outputs'].reshape(-1, 2)
     
     def eval_model(self, current_epoch=None):
-           metrics = {}
-           categories_train, \
-           acc_loss_train, \
-           train_avg_seq_len, \
-           train_inference_time, \
-           train_profiler_result, \
-           seq_tpr, seq_fpr, seq_tnr, seq_fnr = self.model_inference(self.training_data, self.training_labels, self.training_clip_name) 
+        metrics = {}
+        categories_train, \
+        acc_loss_train, \
+        train_avg_seq_len, \
+        train_inference_time, \
+        train_profiler_result, \
+        seq_tpr, seq_fpr, seq_tnr, seq_fnr = self.model_inference(self.training_data, self.training_labels, self.training_clip_name) 
     
-           # Collect metrics from all driving categories
-           for category in self.unique_clips.keys():
-               if category == 'all':
-                   metrics['train'] = get_metrics(categories_train['all']['outputs'], categories_train['all']['labels'])
-                   metrics['train']['loss'] = acc_loss_train
-                   metrics['train']['avg_seq_len'] = train_avg_seq_len
-                   metrics['train']['seq_tpr'] = seq_tpr
-                   metrics['train']['seq_tnr'] = seq_tnr
-                   metrics['train']['seq_fpr'] = seq_fpr
-                   metrics['train']['seq_fnr'] = seq_fnr
-               elif category == 'lanechange':
-                   metrics['train'] = get_metrics(categories_train['lanechange']['outputs'], categories_train['lanechange']['labels'])
-                   metrics['train']['loss'] = acc_loss_train
-                   metrics['train']['avg_seq_len'] = train_avg_seq_len
-                   metrics['train']['seq_tpr'] = seq_tpr
-                   metrics['train']['seq_tnr'] = seq_tnr
-                   metrics['train']['seq_fpr'] = seq_fpr
-                   metrics['train']['seq_fnr'] = seq_fnr
-               else:
-                   metrics['train'][category] = get_metrics(categories_train[category]['outputs'], categories_train[category]['labels'])
+        # Collect metrics from all driving categories
+        for category in self.unique_clips.keys():
+            if category == 'all':
+                metrics['train'] = get_metrics(categories_train['all']['outputs'], categories_train['all']['labels'])
+                metrics['train']['loss'] = acc_loss_train
+                metrics['train']['avg_seq_len'] = train_avg_seq_len
+                metrics['train']['seq_tpr'] = seq_tpr
+                metrics['train']['seq_tnr'] = seq_tnr
+                metrics['train']['seq_fpr'] = seq_fpr
+                metrics['train']['seq_fnr'] = seq_fnr
+            elif category == 'lanechange':
+                metrics['train'] = get_metrics(categories_train['lanechange']['outputs'], categories_train['lanechange']['labels'])
+                metrics['train']['loss'] = acc_loss_train
+                metrics['train']['avg_seq_len'] = train_avg_seq_len
+                metrics['train']['seq_tpr'] = seq_tpr
+                metrics['train']['seq_tnr'] = seq_tnr
+                metrics['train']['seq_fpr'] = seq_fpr
+                metrics['train']['seq_fnr'] = seq_fnr
+            else:
+                metrics['train'][category] = get_metrics(categories_train[category]['outputs'], categories_train[category]['labels'])
     
            categories_test, \
            acc_loss_test, \
@@ -867,47 +876,47 @@ class Image_Trainer(Trainer):
            test_profiler_result, \
            seq_tpr, seq_fpr, seq_tnr, seq_fnr = self.model_inference(self.testing_data, self.testing_labels, self.testing_clip_name) 
     
-           # Collect metrics from all driving categories
-           for category in self.unique_clips.keys():
-               if category == 'all':
-                   metrics['test'] = get_metrics(categories_test['all']['outputs'], categories_test['all']['labels'])
-                   metrics['test']['loss'] = acc_loss_test
-                   metrics['test']['avg_seq_len'] = val_avg_seq_len
-                   metrics['test']['seq_tpr'] = seq_tpr
-                   metrics['test']['seq_tnr'] = seq_tnr
-                   metrics['test']['seq_fpr'] = seq_fpr
-                   metrics['test']['seq_fnr'] = seq_fnr
-                   metrics['avg_inf_time'] = (train_inference_time + test_inference_time) / ((len(self.training_labels) + len(self.testing_labels))*5)
-               elif category == 'lanechange':
-                   metrics['test'] = get_metrics(categories_test['lanechange']['outputs'], categories_test['lanechange']['labels'])
-                   metrics['test']['loss'] = acc_loss_test
-                   metrics['test']['avg_seq_len'] = val_avg_seq_len
-                   metrics['test']['seq_tpr'] = seq_tpr
-                   metrics['test']['seq_tnr'] = seq_tnr
-                   metrics['test']['seq_fpr'] = seq_fpr
-                   metrics['test']['seq_fnr'] = seq_fnr
-                   metrics['avg_inf_time'] = (train_inference_time + test_inference_time) / ((len(self.training_labels) + len(self.testing_labels))*5)
-               else:
-                   metrics['test'][category] = get_metrics(categories_test[category]['outputs'], categories_test[category]['labels'])
+        # Collect metrics from all driving categories
+        for category in self.unique_clips.keys():
+            if category == 'all':
+                metrics['test'] = get_metrics(categories_test['all']['outputs'], categories_test['all']['labels'])
+                metrics['test']['loss'] = acc_loss_test
+                metrics['test']['avg_seq_len'] = val_avg_seq_len
+                metrics['test']['seq_tpr'] = seq_tpr
+                metrics['test']['seq_tnr'] = seq_tnr
+                metrics['test']['seq_fpr'] = seq_fpr
+                metrics['test']['seq_fnr'] = seq_fnr
+                metrics['avg_inf_time'] = (train_inference_time + test_inference_time) / ((len(self.training_labels) + len(self.testing_labels))*5)
+            elif category == 'lanechange':
+                metrics['test'] = get_metrics(categories_test['lanechange']['outputs'], categories_test['lanechange']['labels'])
+                metrics['test']['loss'] = acc_loss_test
+                metrics['test']['avg_seq_len'] = val_avg_seq_len
+                metrics['test']['seq_tpr'] = seq_tpr
+                metrics['test']['seq_tnr'] = seq_tnr
+                metrics['test']['seq_fpr'] = seq_fpr
+                metrics['test']['seq_fnr'] = seq_fnr
+                metrics['avg_inf_time'] = (train_inference_time + test_inference_time) / ((len(self.training_labels) + len(self.testing_labels))*5)
+            else:
+                metrics['test'][category] = get_metrics(categories_test[category]['outputs'], categories_test[category]['labels'])
     
            
-           print("\ntrain loss: " + str(acc_loss_train) + ", acc:", metrics['train']['acc'], metrics['train']['confusion'], "mcc:", metrics['train']['mcc'], \
+        print("\ntrain loss: " + str(acc_loss_train) + ", acc:", metrics['train']['acc'], metrics['train']['confusion'], "mcc:", metrics['train']['mcc'], \
                  "\ntest loss: " +  str(acc_loss_test) + ", acc:",  metrics['test']['acc'],  metrics['test']['confusion'], "mcc:", metrics['test']['mcc'])
     
-           self.update_im_best_metrics(metrics, current_epoch)
-           metrics['best_epoch'] = self.best_epoch
-           metrics['best_val_loss'] = self.best_val_loss
-           metrics['best_val_acc'] = self.best_val_acc
-           metrics['best_val_auc'] = self.best_val_auc
-           metrics['best_val_conf'] = self.best_val_confusion
-           metrics['best_val_f1'] = self.best_val_f1
-           metrics['best_val_mcc'] = self.best_val_mcc
-           metrics['best_val_acc_balanced'] = self.best_val_acc_balanced
+        self.update_im_best_metrics(metrics, current_epoch)
+        metrics['best_epoch'] = self.best_epoch
+        metrics['best_val_loss'] = self.best_val_loss
+        metrics['best_val_acc'] = self.best_val_acc
+        metrics['best_val_auc'] = self.best_val_auc
+        metrics['best_val_conf'] = self.best_val_confusion
+        metrics['best_val_f1'] = self.best_val_f1
+        metrics['best_val_mcc'] = self.best_val_mcc
+        metrics['best_val_acc_balanced'] = self.best_val_acc_balanced
            
-           if self.config.training_configuration['n_fold'] <= 1 or self.log:  
-               self.log2wandb(metrics)
+        if self.config.training_configuration['n_fold'] <= 1 or self.log:  
+            self.log2wandb(metrics)
     
-           return categories_train, categories_test, metrics
+        return categories_train, categories_test, metrics
    
     def update_im_best_metrics(self, metrics, current_epoch):
         if metrics['test']['loss'] < self.best_val_loss:
