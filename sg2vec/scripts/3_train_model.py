@@ -7,6 +7,7 @@ import pandas as pd
 from util.config_parser import configuration
 import wandb
 
+#python 3_train_model.py --yaml_path C:\users\harsi\research\sg2vec\sg2vec\config\learning_config.yaml  
 
 def train_Trainer(learning_config, iterations=1):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''

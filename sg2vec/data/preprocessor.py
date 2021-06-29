@@ -1,5 +1,8 @@
-import scene_graph.relation_extractor as r_e
-import scene_graph.scene_graph as sg
+import sys, os
+from pathlib import Path
+sys.path.append(str(Path("../../")))
+import sg2vec.scene_graph.relation_extractor as r_e
+import sg2vec.scene_graph.scene_graph as sg
 import pickle as pkl
 
 '''Base class used to create CarlaPreprocessor and RealPreprocessor'''

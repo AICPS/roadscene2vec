@@ -6,7 +6,7 @@ from util.config_parser import configuration
 from util.script_exceptions import Invalid_Dataset_Type
 
 
-#python 1_preprocess_dataset.py --yaml_path C:\users\harsi\av\sg2vec\config\data_config_real.yaml  
+#python 1_preprocess_dataset.py --yaml_path C:\users\harsi\research\sg2vec\sg2vec\config\data_config_real.yaml  
 
 '''This script runs pre-processing of Carla or Real data'''
 def preprocess_data():
@@ -23,7 +23,6 @@ def preprocess_data():
         print(base_ds.im_width)
         print(base_ds.color_channels)
         print(base_ds.frame_limit)
-        print(len(base_ds.data[5833]))
     else:
         raise Invalid_Dataset_Type("Please input a valid dataset type")
                  

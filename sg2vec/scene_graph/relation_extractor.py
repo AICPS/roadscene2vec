@@ -1,9 +1,11 @@
 from enum import Enum
 import math
 import itertools
-
-from .nodes import Node
-from .nodes import ObjectNode
+import sys, os
+from pathlib import Path
+sys.path.append(str(Path("../../")))
+from sg2vec.scene_graph.nodes import Node
+from sg2vec.scene_graph.nodes import ObjectNode
 
 #defines all types of actors which can exist
 #order of enum values is important as this determines which function is called. DO NOT CHANGE ENUM ORDER

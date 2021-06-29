@@ -7,6 +7,7 @@ location_data:
 model_configuration:
   model: 'cnn'
   num_layers: 3
+  load_model: False
 training_configuration:
   task_type: 'cnn image classification'
   scenegraph_dataset_type: "carla" #carla or real

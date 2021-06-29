@@ -1,13 +1,15 @@
 from abc import ABC
-
-import scene_graph.relation_extractor as r_e
+import sys, os
+from pathlib import Path
+sys.path.append(str(Path("../../")))
+import sg2vec.scene_graph.relation_extractor as r_e
 
 
 '''
 This class defines the abstract base class of scene-graph extractors. scene-graph extractors can extract data from many different formats to generate SceneGraphDatasets.
 '''
-import scene_graph.relation_extractor as r_e
-import scene_graph.scene_graph as sg
+import sg2vec.scene_graph.relation_extractor as r_e
+import sg2vec.scene_graph.scene_graph as sg
 import pickle as pkl
 
 '''Base class used to create CarlaExtractor and RealExtractor'''

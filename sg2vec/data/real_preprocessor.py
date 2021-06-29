@@ -1,8 +1,9 @@
-from  .preprocessor import Preprocessor as prepproc
-import yaml
-from data import dataset as ds
 import sys, os
-sys.path.append(os.path.dirname(sys.path[0]))
+from pathlib import Path
+sys.path.append(str(Path("../../")))
+from sg2vec.data.preprocessor import Preprocessor as prepproc
+import yaml
+from sg2vec.data import dataset as ds
 from abc import ABC
 from pathlib import Path
 from tqdm import tqdm
@@ -52,9 +53,7 @@ class RealPreprocessor(prepproc):
             else:#if don't want to ignore but path to file ignore file doesn't exist
                 self.dataset.data[seq] = self._load_images(path)  
     
-            if not label_path.exists():
-                raise FileNotFoundError((path/'label.txt').resolve())
-            else:
+            if label_path.exists():
                 with open(str(path/'label.txt'), 'r') as label_file:
                     lines = label_file.readlines()
                     l0 = 1.0 if float(lines[0].strip().split(",")[0]) >= 0 else 0.0 

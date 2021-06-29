@@ -2,16 +2,19 @@ import os, sys, yaml
 import pickle as pkl
 import cv2
 import detectron2
-import data.dataset as ds
-from .extractor import Extractor as ex
-from scene_graph.scene_graph import SceneGraph
+import sys, os
+from pathlib import Path
+sys.path.append(str(Path("../../")))
+import sg2vec.data.dataset as ds
+from sg2vec.scene_graph.extraction.extractor import Extractor as ex
+from sg2vec.scene_graph.scene_graph import SceneGraph
 
 from detectron2.engine import DefaultPredictor
 from detectron2.data import MetadataCatalog
 from detectron2.utils import visualizer 
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
-from .bev import bev
+from sg2vec.scene_graph.extraction.bev import bev
 from tqdm import tqdm
 
 '''RealExtractor initializes relational settings and creates an ImageSceneGraphSequenceGenerator object to extract scene graphs using raw image data.'''

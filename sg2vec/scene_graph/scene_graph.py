@@ -2,9 +2,12 @@ import matplotlib, math, itertools
 matplotlib.use("Agg")
 import networkx as nx
 from networkx.drawing.nx_agraph import to_agraph
-from .relation_extractor import Relations, ActorType, RELATION_COLORS 
-from .nodes import Node
-from .nodes import ObjectNode
+import sys, os
+from pathlib import Path
+sys.path.append(str(Path("../../")))
+from sg2vec.scene_graph.relation_extractor import Relations, ActorType, RELATION_COLORS 
+from sg2vec.scene_graph.nodes import Node
+from sg2vec.scene_graph.nodes import ObjectNode
 import pdb
 
 '''Create scenegraph using raw Carla json frame data or raw image data'''

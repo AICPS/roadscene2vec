@@ -1,15 +1,15 @@
-import os
-import sys
 import cv2
 from PIL import Image
 from io import BytesIO
 from pprint import pprint
 from networkx.drawing import nx_agraph, nx_pydot
-sys.path.append(os.path.dirname(sys.path[0]))
-from util import config_parser
-from scene_graph.scene_graph import SceneGraph
+import sys, os
+from pathlib import Path
+sys.path.append(str(Path("../../")))
+from sg2vec.util import config_parser
+from sg2vec.scene_graph.scene_graph import SceneGraph
 # from scene_graph.extraction.carla_extractor import CarlaExtractor # going to ignore for now...
-from scene_graph.extraction.image_extractor import RealExtractor
+from sg2vec.scene_graph.extraction.image_extractor import RealExtractor
 
 import matplotlib
 import matplotlib.pyplot as plt

@@ -1,5 +1,6 @@
-import os, sys, pdb
-sys.path.append(os.path.dirname(sys.path[0]))
+import sys, os
+from pathlib import Path
+sys.path.append(str(Path("../../")))
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -12,18 +13,17 @@ from matplotlib import pyplot as plt
 import math
 
 
-from data.dataset import SceneGraphDataset
-from data.dataset import RawImageDataset
-from scene_graph.relation_extractor import Relations
+from sg2vec.data.dataset import SceneGraphDataset
+from sg2vec.data.dataset import RawImageDataset
+from sg2vec.scene_graph.relation_extractor import Relations
 from argparse import ArgumentParser
-from pathlib import Path
 from tqdm import tqdm
-from learning.model.mrgcn import MRGCN
-from learning.model.mrgin import MRGIN
-from learning.model.cnn import CNN_Classifier
-from learning.model.cnn_lstm import CNN_LSTM_Classifier
-from learning.model.lstm import LSTM_Classifier
 
+from sg2vec.learning.model.cnn_lstm import CNN_LSTM_Classifier
+from sg2vec.learning.model.lstm import LSTM_Classifier
+from sg2vec.learning.model.mrgcn import MRGCN
+from sg2vec.learning.model.mrgin import MRGIN
+from sg2vec.learning.model.cnn import CNN_Classifier
 from torch_geometric.data import Data, DataLoader, DataListLoader
 from sklearn.utils.class_weight import compute_class_weight
 import warnings
@@ -31,19 +31,25 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
 import pickle as pkl
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from learning.util.metrics import *
+from sg2vec.learning.util.metrics import *
 
 from collections import Counter,defaultdict
 import wandb
 
-from learning.util.model_input_preprocessing import *
+from sg2vec.learning.util.model_input_preprocessing import *
 
 class Trainer:
 
     def __init__(self, config, wandb_a = None):
         self.config = config
-        self.wandb = wandb_a
-        self.wandb_config = wandb_a.config
+        if wandb_a != None:
+            self.wandb = wandb_a
+            self.wandb_config = wandb_a.config
+            # load config into wandb
+            for section in self.config.args:
+                for config_arg in self.config.args[section]:
+                    self.wandb_config[section+'.'+config_arg] = self.config.args[section][config_arg]
+                      
         if self.config.training_configuration["seed"] != None: 
             self.config.seed = self.config.training_configuration["seed"]
             np.random.seed(self.config.seed)
@@ -53,11 +59,9 @@ class Trainer:
             np.random.seed(self.config.seed)
             torch.manual_seed(self.config.seed)
             
-        # load config into wandb
-        for section in self.config.args:
-            for config_arg in self.config.args[section]:
-                self.wandb_config[section+'.'+config_arg] = self.config.args[section][config_arg]
-                  
+        self.feature_list = set()
+        for i in range(self.config.training_configuration['num_of_classes']):
+            self.feature_list.add("type_"+str(i))
         self.toGPU = lambda x, dtype: torch.as_tensor(x, dtype=dtype, device=self.config.training_configuration['device'])
         self.best_val_loss = 99999
         self.best_epoch = 0
@@ -131,14 +135,14 @@ class Trainer:
         #
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.training_configuration["learning_rate"], weight_decay=self.config.training_configuration["weight_decay"])
         
-        
-        if self.class_weights.shape[0] < 2:
-            self.loss_func = nn.CrossEntropyLoss()
-        else:
-            self.loss_func = nn.CrossEntropyLoss(weight=self.class_weights.float().to(self.config.training_configuration["device"]))
-
-        #wandb.watch(self.model, log="all")
-        self.wandb.watch(self.model, log="all")
+        if self.config.model_configuration["load_model"]  == False:
+            if self.class_weights.shape[0] < 2:
+                self.loss_func = nn.CrossEntropyLoss()
+            else:
+                self.loss_func = nn.CrossEntropyLoss(weight=self.class_weights.float().to(self.config.training_configuration["device"]))
+     
+            #wandb.watch(self.model, log="all")
+            self.wandb.watch(self.model, log="all")
 
 
     # Pick between Standard Training and KFold Cross Validation Training
@@ -239,11 +243,90 @@ class Trainer:
             self.model.load_state_dict(torch.load(str(saved_path)))
             self.model.eval()
             
-            
+
+
+
+           
             
 class Scenegraph_Trainer(Trainer):
     #optimize call. build_scenegraph_dataset was changed to self
-    def build_scenegraph_dataset(self,cache_path, train_to_test_ratio=0.3, downsample=False, seed=0, transfer_path=None): #this creates test and training datasets
+    def __init__(self, config, wandb_a = None):
+        super(Scenegraph_Trainer, self).__init__(config, wandb_a)
+     
+    def build_transfer_learning_dataset(self): #this creates test dataset for transfer learning
+        scene_graph_dataset  = SceneGraphDataset()
+        scene_graph_dataset.dataset_save_path = self.config.location_data["transfer_path"]
+        self.scene_graph_dataset = scene_graph_dataset.load()
+
+    
+        self.transfer_data= []
+        sorted_seq = sorted(self.scene_graph_dataset.labels)
+        if self.config.training_configuration["scenegraph_dataset_type"] == "carla":
+            for ind, seq in enumerate(sorted_seq): #for each seq in labels
+                data_to_append = {"sequence":process_carla_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
+                self.transfer_data.append(data_to_append)
+                    
+        elif self.config.training_configuration["scenegraph_dataset_type"] == "real":
+            for ind, seq in enumerate(sorted_seq): 
+                data_to_append = {"sequence":process_real_image_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
+                self.transfer_data.append(data_to_append)
+                
+        self.total_transfer_data_labels = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.transfer_data])
+        self.transfer_data_labels = [data['label'] for data in self.transfer_data]
+
+
+
+    def evaluate_transfer_learning(self, current_epoch=None):
+        metrics = {}
+        self.log = True
+        outputs_test, \
+        labels_test, \
+        acc_loss_test, \
+        attns_test, \
+        node_attns_test, \
+        val_avg_prediction_frame, \
+        val_avg_seq_len, \
+        avg_predicted_risky_indices, \
+        avg_predicted_safe_indices, \
+        test_inference_time, \
+        test_profiler_result, \
+        seq_tpr, \
+        seq_fpr, \
+        seq_tnr, \
+        seq_fnr = self.inference(self.transfer_data, self.transfer_data_labels)
+
+        metrics['test'] = get_metrics(outputs_test, labels_test)
+        metrics['test']['loss'] = acc_loss_test
+        metrics['test']['avg_prediction_frame'] = val_avg_prediction_frame
+        metrics['test']['avg_seq_len'] = val_avg_seq_len
+        metrics['test']['avg_predicted_risky_indices'] = avg_predicted_risky_indices
+        metrics['test']['avg_predicted_safe_indices'] = avg_predicted_safe_indices
+        metrics['test']['seq_tpr'] = seq_tpr
+        metrics['test']['seq_tnr'] = seq_tnr
+        metrics['test']['seq_fpr'] = seq_fpr
+        metrics['test']['seq_fnr'] = seq_fnr
+        metrics['avg_inf_time'] = (test_inference_time) / (len(labels_test))
+
+
+        self.update_sg_best_metrics(metrics, current_epoch)
+        metrics['best_epoch'] = self.best_epoch
+        metrics['best_val_loss'] = self.best_val_loss
+        metrics['best_val_acc'] = self.best_val_acc
+        metrics['best_val_auc'] = self.best_val_auc
+        metrics['best_val_conf'] = self.best_val_confusion
+        metrics['best_val_f1'] = self.best_val_f1
+        metrics['best_val_mcc'] = self.best_val_mcc
+        metrics['best_val_acc_balanced'] = self.best_val_acc_balanced
+        metrics['best_avg_pred_frame'] = self.best_avg_pred_frame
+        
+        if self.config.training_configuration["n_fold"] <= 1 or self.log:
+            log_wandb(metrics)
+        
+        return outputs_test, labels_test, metrics
+
+
+        
+    def build_scenegraph_dataset(self): #this creates test and training datasets
         '''
         Dataset format 
             scenegraphs_sequence: dict_keys(['sequence', 'label', 'folder_name'])
@@ -267,10 +350,10 @@ class Scenegraph_Trainer(Trainer):
         scene_graph_dataset.dataset_save_path = self.config.location_data["input_path"]
         self.scene_graph_dataset = scene_graph_dataset.load()
         #scenegraphs_sequence = self.scene_graph_dataset.scene_graphs
-        self.feature_list = set() #is this right or shld it be done sooner?, not really used in current sg extraction pipeline
-        for i in range(self.config.training_configuration["num_of_classes"]): #    if so need to add num_classes to config
-            self.feature_list.add("type_"+str(i))
-            
+#         self.feature_list = set() #is this right or shld it be done sooner?, not really used in current sg extraction pipeline
+#         for i in range(self.config.training_configuration["num_of_classes"]): #    if so need to add num_classes to config
+#             self.feature_list.add("type_"+str(i))
+#             
     
         class_0 = []
         class_1 = []
@@ -302,15 +385,15 @@ class Scenegraph_Trainer(Trainer):
 
         min_number = min(len(class_0), len(class_1))
         
+        downsample = self.config.training_configuration["downsample"]
+        
         if downsample:
             modified_class_0, modified_y_0 = resample(class_0, y_0, n_samples=min_number)
         else:
             modified_class_0, modified_y_0 = class_0, y_0
-        train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=train_to_test_ratio, shuffle=True, stratify=modified_y_0+y_1, random_state=seed)
-        if self.config.location_data["transfer_path"] != None:#what is this meant to do if input path is meant to load in sq dataset obj?
-            test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
-            scenegraphs_sequence = class_1+class_0
-            return scenegraphs_sequence, test, self.feature_list 
+        train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=self.config.training_configuration["split_ratio"], shuffle=True, stratify=modified_y_0+y_1, random_state=self.config.seed)
+        if self.config.location_data["transfer_path"] != None:
+            self.build_transfer_learning_dataset()
         #dont do kfold here instead it is done when learn() is called
         return train, test, self.feature_list # redundant return of self.feature_list
     
@@ -319,11 +402,11 @@ class Scenegraph_Trainer(Trainer):
         #####################
         ''' move to another file'''
         if self.config.training_configuration["scenegraph_dataset_type"] == "carla":
-            for seq in sequence.scene_graph_dataset.scene_graphs:
-                data = {"sequence":process_carla_graph_sequences(sequence.scene_graph_dataset.scene_graphs[seq], feature_list = None, folder_name = sequence.scene_graph_dataset.folder_names[seq]) , "label":None, "folder_name": sequence.scene_graph_dataset.folder_names[seq]}
+            for seq in sequence.scene_graphs:
+                data = {"sequence":process_carla_graph_sequences(sequence.scene_graphs[seq], feature_list = self.feature_list, folder_name = sequence.folder_names[0]) , "label":None, "folder_name": sequence.folder_names[0]}
         elif self.config.training_configuration["scenegraph_dataset_type"] == "real":
-            for seq in sequence.scene_graph_dataset.scene_graphs:
-                data = {"sequence":process_real_image_graph_sequences(sequence.scene_graph_dataset.scene_graphs[seq], feature_list = None, folder_name = sequence.scene_graph_dataset.folder_names[seq]) , "label":None, "folder_name": sequence.scene_graph_dataset.folder_names[seq]}
+            for seq in sequence.scene_graphs:
+                data = {"sequence":process_real_image_graph_sequences(sequence.scene_graphs[seq], feature_list = self.feature_list, folder_name = sequence.folder_names[0]) , "label":None, "folder_name": sequence.folder_names[0]}
         else:
             raise ValueError('output():scenegraph_dataset_type unrecognized')
         #####################
@@ -692,17 +775,20 @@ class Scenegraph_Trainer(Trainer):
             log_wandb(final_results)
             
             return self.results['outputs_train'], self.results['labels_train'], self.results['outputs_test'], self.results['labels_test'], final_results
-                
+
                 
 class Image_Trainer(Trainer):
-    def build_real_image_dataset(self,cache_path, train_to_test_ratio=0.3, downsample=False, seed=0, transfer_path=None):
+    def __init__(self, config, wandb_a = None):
+        super(Image_Trainer, self).__init__(config, wandb_a)
+        
+    def build_real_image_dataset(self):
         image_dataset = RawImageDataset()
         image_dataset.dataset_save_path = self.config.location_data["input_path"]
         self.image_dataset = image_dataset.load()
           
-        self.feature_list = set()
-        for i in range(self.config.training_configuration['num_of_classes']):
-            self.feature_list.add("type_"+str(i))
+#         self.feature_list = set()
+#         for i in range(self.config.training_configuration['num_of_classes']):
+#             self.feature_list.add("type_"+str(i))
               
         class_0 = []
         class_1 = []
@@ -726,12 +812,14 @@ class Image_Trainer(Trainer):
     
     
         min_number = min(len(class_0), len(class_1))
-          
+        
+        downsample = self.config.training_configuration['downsample']
+              
         if downsample:
             modified_class_0, modified_y_0 = resample(class_0, y_0, n_samples=min_number)
         else:
             modified_class_0, modified_y_0 = class_0, y_0
-        train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=train_to_test_ratio, shuffle=True, stratify=modified_y_0+y_1, random_state=seed)
+        train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=self.config.training_configuration['split_ratio'], shuffle=True, stratify=modified_y_0+y_1, random_state=self.config.seed)
         if self.config.location_data["transfer_path"] != None:#what is this meant to do if input path is meant to load in sq dataset obj?
             test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
             image_sequence = class_1+class_0
@@ -743,9 +831,7 @@ class Image_Trainer(Trainer):
         labels = torch.LongTensor().to(self.config.training_configuration['device'])
         outputs = torch.FloatTensor().to(self.config.training_configuration['device'])
         # Dictionary storing (output, label) pair for all driving categories
-        categories = dict.fromkeys(self.unique_clips)
-        for key, val in categories.items():
-            categories[key] = {'outputs': outputs, 'labels': labels}
+        categories = {'outputs': outputs, 'labels': labels}
         batch_size = self.config.training_configuration['batch_size'] # NOTE: set to 1 when profiling or calculating inference time.
         acc_loss = 0
         inference_time = 0
@@ -770,7 +856,6 @@ class Image_Trainer(Trainer):
                     acc_loss += loss_test.detach().cpu().item() * len(batch_y)
                     # store output, label statistics
                     self.update_categorical_outputs(categories, output, batch_y, batch_clip_name)
-    
         # calculate one risk score per sequence (this is not implemented for each category)
         sum_seq_len = 0
         num_risky_sequences = 0
@@ -779,10 +864,10 @@ class Image_Trainer(Trainer):
         correct_safe_seq = 0
         incorrect_risky_seq = 0
         incorrect_safe_seq = 0
-        sequences = len(categories['lanechange']['labels'])
+        sequences = len(categories['labels'])
         for indices in range(sequences):
-            seq_output = categories['lanechange']['outputs'][indices]
-            label = categories['lanechange']['labels'][indices]
+            seq_output = categories['outputs'][indices]
+            label = categories['labels'][indices]
             pred = torch.argmax(seq_output)
               
             # risky clip
@@ -824,20 +909,13 @@ class Image_Trainer(Trainer):
         '''
         n = len(clip_name)
         for i in range(n):
-            category = clip_name[i]
-            # FIXME: probably better way to do this
-            if category in categories:
-                categories[category]['outputs'] = torch.cat([categories[category]['outputs'], torch.unsqueeze(outputs[i], dim=0)], dim=0)
-                categories[category]['labels'] = torch.cat([categories[category]['labels'], torch.unsqueeze(labels[i], dim=0)], dim=0)
-            # multi category
-            else: 
-                category = 'all'
-                categories[category]['outputs'] = torch.cat([categories[category]['outputs'], torch.unsqueeze(outputs[i], dim=0)], dim=0)
-                categories[category]['labels'] = torch.cat([categories[category]['labels'], torch.unsqueeze(labels[i], dim=0)], dim=0)
+
+            categories['outputs'] = torch.cat([categories['outputs'], torch.unsqueeze(outputs[i], dim=0)], dim=0)
+            categories['labels'] = torch.cat([categories['labels'], torch.unsqueeze(labels[i], dim=0)], dim=0)
 
         # reshape outputs
-        for k, v in categories.items():
-            categories[k]['outputs'] = categories[k]['outputs'].reshape(-1, 2)
+
+        categories['outputs'] = categories['outputs'].reshape(-1, 2)
     
     def eval_model(self, current_epoch=None):
         metrics = {}
@@ -849,55 +927,32 @@ class Image_Trainer(Trainer):
         seq_tpr, seq_fpr, seq_tnr, seq_fnr = self.model_inference(self.training_data, self.training_labels, self.training_clip_name) 
     
         # Collect metrics from all driving categories
-        for category in self.unique_clips.keys():
-            if category == 'all':
-                metrics['train'] = get_metrics(categories_train['all']['outputs'], categories_train['all']['labels'])
-                metrics['train']['loss'] = acc_loss_train
-                metrics['train']['avg_seq_len'] = train_avg_seq_len
-                metrics['train']['seq_tpr'] = seq_tpr
-                metrics['train']['seq_tnr'] = seq_tnr
-                metrics['train']['seq_fpr'] = seq_fpr
-                metrics['train']['seq_fnr'] = seq_fnr
-            elif category == 'lanechange':
-                metrics['train'] = get_metrics(categories_train['lanechange']['outputs'], categories_train['lanechange']['labels'])
-                metrics['train']['loss'] = acc_loss_train
-                metrics['train']['avg_seq_len'] = train_avg_seq_len
-                metrics['train']['seq_tpr'] = seq_tpr
-                metrics['train']['seq_tnr'] = seq_tnr
-                metrics['train']['seq_fpr'] = seq_fpr
-                metrics['train']['seq_fnr'] = seq_fnr
-            else:
-                metrics['train'][category] = get_metrics(categories_train[category]['outputs'], categories_train[category]['labels'])
-    
-           categories_test, \
-           acc_loss_test, \
-           val_avg_seq_len, \
-           test_inference_time, \
-           test_profiler_result, \
-           seq_tpr, seq_fpr, seq_tnr, seq_fnr = self.model_inference(self.testing_data, self.testing_labels, self.testing_clip_name) 
+        metrics['train'] = get_metrics(categories_train['outputs'], categories_train['labels'])
+        metrics['train']['loss'] = acc_loss_train
+        metrics['train']['avg_seq_len'] = train_avg_seq_len
+        metrics['train']['seq_tpr'] = seq_tpr
+        metrics['train']['seq_tnr'] = seq_tnr
+        metrics['train']['seq_fpr'] = seq_fpr
+        metrics['train']['seq_fnr'] = seq_fnr
+
+
+        categories_test, \
+        acc_loss_test, \
+        val_avg_seq_len, \
+        test_inference_time, \
+        test_profiler_result, \
+        seq_tpr, seq_fpr, seq_tnr, seq_fnr = self.model_inference(self.testing_data, self.testing_labels, self.testing_clip_name) 
     
         # Collect metrics from all driving categories
-        for category in self.unique_clips.keys():
-            if category == 'all':
-                metrics['test'] = get_metrics(categories_test['all']['outputs'], categories_test['all']['labels'])
-                metrics['test']['loss'] = acc_loss_test
-                metrics['test']['avg_seq_len'] = val_avg_seq_len
-                metrics['test']['seq_tpr'] = seq_tpr
-                metrics['test']['seq_tnr'] = seq_tnr
-                metrics['test']['seq_fpr'] = seq_fpr
-                metrics['test']['seq_fnr'] = seq_fnr
-                metrics['avg_inf_time'] = (train_inference_time + test_inference_time) / ((len(self.training_labels) + len(self.testing_labels))*5)
-            elif category == 'lanechange':
-                metrics['test'] = get_metrics(categories_test['lanechange']['outputs'], categories_test['lanechange']['labels'])
-                metrics['test']['loss'] = acc_loss_test
-                metrics['test']['avg_seq_len'] = val_avg_seq_len
-                metrics['test']['seq_tpr'] = seq_tpr
-                metrics['test']['seq_tnr'] = seq_tnr
-                metrics['test']['seq_fpr'] = seq_fpr
-                metrics['test']['seq_fnr'] = seq_fnr
-                metrics['avg_inf_time'] = (train_inference_time + test_inference_time) / ((len(self.training_labels) + len(self.testing_labels))*5)
-            else:
-                metrics['test'][category] = get_metrics(categories_test[category]['outputs'], categories_test[category]['labels'])
+        metrics['test'] = get_metrics(categories_test['outputs'], categories_test['labels'])
+        metrics['test']['loss'] = acc_loss_test
+        metrics['test']['avg_seq_len'] = val_avg_seq_len
+        metrics['test']['seq_tpr'] = seq_tpr
+        metrics['test']['seq_tnr'] = seq_tnr
+        metrics['test']['seq_fpr'] = seq_fpr
+        metrics['test']['seq_fnr'] = seq_fnr
+        metrics['avg_inf_time'] = (train_inference_time + test_inference_time) / ((len(self.training_labels) + len(self.testing_labels))*5)
+
     
            
         print("\ntrain loss: " + str(acc_loss_train) + ", acc:", metrics['train']['acc'], metrics['train']['confusion'], "mcc:", metrics['train']['mcc'], \
@@ -938,74 +993,62 @@ class Image_Trainer(Trainer):
         if self.fold == 1:
             for dataset in datasets:
                 categories = categories_train if dataset == 'train' else categories_test
-                for category in self.unique_clips.keys():
-                    if category == 'all':
-                        self.results['outputs'+'_'+dataset] = categories['all']['outputs']
-                        self.results['labels'+'_'+dataset] = categories['all']['labels']
-                        self.results[dataset] = metrics[dataset]
-                        self.results[dataset]['loss'] = metrics[dataset]['loss']
-                        self.results[dataset]['avg_seq_len']  = metrics[dataset]['avg_seq_len'] 
-                        
-                        # Best results
-                        self.results['avg_inf_time']  = metrics['avg_inf_time']
-                        self.results['best_epoch']    = metrics['best_epoch']
-                        self.results['best_val_loss'] = metrics['best_val_loss']
-                        self.results['best_val_acc']  = metrics['best_val_acc']
-                        self.results['best_val_auc']  = metrics['best_val_auc']
-                        self.results['best_val_conf'] = metrics['best_val_conf']
-                        self.results['best_val_f1']   = metrics['best_val_f1']
-                        self.results['best_val_mcc']  = metrics['best_val_mcc']
-                        self.results['best_val_acc_balanced'] = metrics['best_val_acc_balanced']
-                    else:
-                        self.results[dataset][category]['outputs'] = categories[category]['outputs']
-                        self.results[dataset][category]['labels'] = categories[category]['labels']
+                self.results['outputs'+'_'+dataset] = categories['outputs']
+                self.results['labels'+'_'+dataset] = categories['labels']
+                self.results[dataset] = metrics[dataset]
+                self.results[dataset]['loss'] = metrics[dataset]['loss']
+                self.results[dataset]['avg_seq_len']  = metrics[dataset]['avg_seq_len'] 
+                
+                # Best results
+                self.results['avg_inf_time']  = metrics['avg_inf_time']
+                self.results['best_epoch']    = metrics['best_epoch']
+                self.results['best_val_loss'] = metrics['best_val_loss']
+                self.results['best_val_acc']  = metrics['best_val_acc']
+                self.results['best_val_auc']  = metrics['best_val_auc']
+                self.results['best_val_conf'] = metrics['best_val_conf']
+                self.results['best_val_f1']   = metrics['best_val_f1']
+                self.results['best_val_mcc']  = metrics['best_val_mcc']
+                self.results['best_val_acc_balanced'] = metrics['best_val_acc_balanced']
+
     
         else:
             for dataset in datasets:
                 categories = categories_train if dataset == 'train' else categories_test
-                for category in self.unique_clips.keys():
-                    if category == 'all':
-                        self.results['outputs'+'_'+dataset] = torch.cat((self.results['outputs'+'_'+dataset], categories['all']['outputs']), dim=0)
-                        self.results['labels'+'_'+dataset]  = torch.cat((self.results['labels'+'_'+dataset], categories['all']['labels']), dim=0)
-                        self.results[dataset]['loss'] = np.append(self.results[dataset]['loss'], metrics[dataset]['loss'])
-                        self.results[dataset]['avg_seq_len']  = np.append(self.results[dataset]['avg_seq_len'], metrics[dataset]['avg_seq_len'])
-                        
-                        # Best results
-                        self.results['avg_inf_time']  = np.append(self.results['avg_inf_time'], metrics['avg_inf_time'])
-                        self.results['best_epoch']    = np.append(self.results['best_epoch'], metrics['best_epoch'])
-                        self.results['best_val_loss'] = np.append(self.results['best_val_loss'], metrics['best_val_loss'])
-                        self.results['best_val_acc']  = np.append(self.results['best_val_acc'], metrics['best_val_acc'])
-                        self.results['best_val_auc']  = np.append(self.results['best_val_auc'], metrics['best_val_auc'])
-                        self.results['best_val_conf'] = np.append(self.results['best_val_conf'], metrics['best_val_conf'])
-                        self.results['best_val_f1']   = np.append(self.results['best_val_f1'], metrics['best_val_f1'])
-                        self.results['best_val_mcc']  = np.append(self.results['best_val_mcc'], metrics['best_val_mcc'])
-                        self.results['best_val_acc_balanced'] = np.append(self.results['best_val_acc_balanced'], metrics['best_val_acc_balanced'])
-                    else:
-                        self.results[dataset][category]['outputs'] = torch.cat((self.results[dataset][category]['outputs'], categories[category]['outputs']), dim=0)
-                        self.results[dataset][category]['labels']  = torch.cat((self.results[dataset][category]['labels'], categories[category]['labels']), dim=0)
+                self.results['outputs'+'_'+dataset] = torch.cat((self.results['outputs'+'_'+dataset], categories['outputs']), dim=0)
+                self.results['labels'+'_'+dataset]  = torch.cat((self.results['labels'+'_'+dataset], categories['labels']), dim=0)
+                self.results[dataset]['loss'] = np.append(self.results[dataset]['loss'], metrics[dataset]['loss'])
+                self.results[dataset]['avg_seq_len']  = np.append(self.results[dataset]['avg_seq_len'], metrics[dataset]['avg_seq_len'])
+                
+                # Best results
+                self.results['avg_inf_time']  = np.append(self.results['avg_inf_time'], metrics['avg_inf_time'])
+                self.results['best_epoch']    = np.append(self.results['best_epoch'], metrics['best_epoch'])
+                self.results['best_val_loss'] = np.append(self.results['best_val_loss'], metrics['best_val_loss'])
+                self.results['best_val_acc']  = np.append(self.results['best_val_acc'], metrics['best_val_acc'])
+                self.results['best_val_auc']  = np.append(self.results['best_val_auc'], metrics['best_val_auc'])
+                self.results['best_val_conf'] = np.append(self.results['best_val_conf'], metrics['best_val_conf'])
+                self.results['best_val_f1']   = np.append(self.results['best_val_f1'], metrics['best_val_f1'])
+                self.results['best_val_mcc']  = np.append(self.results['best_val_mcc'], metrics['best_val_mcc'])
+                self.results['best_val_acc_balanced'] = np.append(self.results['best_val_acc_balanced'], metrics['best_val_acc_balanced'])
+
             
         # Log final averaged results
         if self.fold == self.config.training_configuration['n_fold']:
             final_metrics = {}
             for dataset in datasets:
-                for category in self.unique_clips.keys():
-                    if category == 'all':
-                        final_metrics[dataset] = get_metrics(self.results['outputs'+'_'+dataset], self.results['labels'+'_'+dataset])
-                        final_metrics[dataset]['loss'] = np.average(self.results[dataset]['loss'])
-                        final_metrics[dataset]['avg_seq_len'] = np.average(self.results[dataset]['avg_seq_len'])
-    
-                        # Best results
-                        final_metrics['avg_inf_time']  = np.average(self.results['avg_inf_time'])
-                        final_metrics['best_epoch']    = np.average(self.results['best_epoch'])
-                        final_metrics['best_val_loss'] = np.average(self.results['best_val_loss'])
-                        final_metrics['best_val_acc']  = np.average(self.results['best_val_acc'])
-                        final_metrics['best_val_auc']  = np.average(self.results['best_val_auc'])
-                        final_metrics['best_val_conf'] = self.results['best_val_conf']
-                        final_metrics['best_val_f1']   = np.average(self.results['best_val_f1'])
-                        final_metrics['best_val_mcc']  = np.average(self.results['best_val_mcc'])
-                        final_metrics['best_val_acc_balanced'] = np.average(self.results['best_val_acc_balanced'])
-                    else: 
-                        final_metrics[dataset][category] = get_metrics(self.results[dataset][category]['outputs'], self.results[dataset][category]['labels'])
+                final_metrics[dataset] = get_metrics(self.results['outputs'+'_'+dataset], self.results['labels'+'_'+dataset])
+                final_metrics[dataset]['loss'] = np.average(self.results[dataset]['loss'])
+                final_metrics[dataset]['avg_seq_len'] = np.average(self.results[dataset]['avg_seq_len'])
+
+                # Best results
+                final_metrics['avg_inf_time']  = np.average(self.results['avg_inf_time'])
+                final_metrics['best_epoch']    = np.average(self.results['best_epoch'])
+                final_metrics['best_val_loss'] = np.average(self.results['best_val_loss'])
+                final_metrics['best_val_acc']  = np.average(self.results['best_val_acc'])
+                final_metrics['best_val_auc']  = np.average(self.results['best_val_auc'])
+                final_metrics['best_val_conf'] = self.results['best_val_conf']
+                final_metrics['best_val_f1']   = np.average(self.results['best_val_f1'])
+                final_metrics['best_val_mcc']  = np.average(self.results['best_val_mcc'])
+                final_metrics['best_val_acc_balanced'] = np.average(self.results['best_val_acc_balanced'])
     
             print('\nFinal Averaged Results')
             print("\naverage train loss: " + str(final_metrics['train']['loss']) + ", average acc:", final_metrics['train']['acc'], final_metrics['train']['confusion'], final_metrics['train']['auc'], \
@@ -1053,17 +1096,21 @@ class Image_Trainer(Trainer):
             self.train()
             self.log = True
             categories_train, categories_test, metrics = self.eval_model(self.fold)
-            self.update_cross_valid_metrics(categories_train, categories_test, metrics)
+            self.update_im_cross_valid_metrics(categories_train, categories_test, metrics)
             self.log = False
 
             if self.fold != self.config.training_configuration["n_fold"]:
                 self.reset_weights(self.model)
                 del self.optimizer
-                self.build_model(self.model)
+                self.build_model()
                 
             self.fold += 1            
         del self.results
-
+        
+    def reset_weights(self, model):
+        for layer in model.children():
+            if hasattr(layer, 'reset_parameters'):
+                layer.reset_parameters()
 
     def update_cross_valid_metrics(self, categories_train, categories_test, metrics):
             '''
