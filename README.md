@@ -44,21 +44,20 @@ pip install -r requirements.txt
 TODO
 
 ### Use Case 2: Using Scene-Graph Embeddings for Subjective Risk Assessment
-This use case demonstrates how to use SG2VEC to classify a given sequence of images as safe or unsafe. In the sample script examples/use_case_2.py, RealPreprocessor first creates an image dataset using specifications in the data_config yaml file. The function im2graph then converts the image dataset to a scene graph dataset using specifications in the scene_graph_config.yaml file. Finally, Scenegraph_Trainer loads a pre-trained model to output the risk assessment for the created scene graph dataset. 
+This use case demonstrates how to use SG2VEC to classify a given sequence of images as safe or unsafe using risk assessment, which aims to model a driver's subjective analysis of risk on the road. In the sample script examples/use_case_2.py, RealPreprocessor first creates an image dataset using specifications in the data_config yaml file. The function im2graph then converts the image dataset to a scene graph dataset using specifications in the scene_graph_config.yaml file. Finally, Scenegraph_Trainer loads a pre-trained model to output the risk assessment for the created scene graph dataset. 
 
 To run this use case, use the following commands
 ```shell
 $ cd examples
 $ python use_case_2.py
 ```
-This use case uses three configuration objects for each stage of data processing, each of which, are derived from their respective yaml files. The paths to the yaml files are arguments used to create the configuration objects.
+This use case uses three configuration objects for each stage of data processing, each of which are derived from their respective yaml files. The paths to the yaml files are arguments used to create the configuration objects.
 
 
 Image dataset - data_preprocessing_config.yaml
 ```shell
 def extract_seq():
     real_data_preprocessing_config = configuration(r"use_case_2_data_preprocessing_config.yaml",from_function = True)
-#replace with path to sg2vec\config\scene_graph_config_real.yaml
 #config should contain path to pkl containing preprocessed RawImageDataset
 ```
 
@@ -66,14 +65,12 @@ Scenegraph dataset - scenegraph_extraction_config.yaml
 ```shell
 def im2graph():
     real_scenegraph_extraction_config = configuration(r"use_case_2_scenegraph_extraction_config.yaml",from_function = True)
-#replace with path to sg2vec\config\data_config_real.yaml
 #config should contain path to folder containing sequence to evaluate
 ```
 
 trainer - learning_config.yaml
 ```shell
 training_config = configuration(r"use_case_2_learning_config.yaml",from_function = True)
-#replace with path to sg2vec\config\learning_config.yaml
 #task_type in learning config training_configuration should be set to sequence_classification
 #model_load_path should contain path to pretrained trainer in sg2vec/examples/pretrained_models
 #load_model should be set to True
@@ -103,8 +100,41 @@ training_configuration:
 ```
 
 
+
 ### Use Case 3: Using Scene-Graph Embeddings for Collision Prediction
-TODO
+This use case demonstrates how to use SG2VEC to predict future vehicle collisions using a time-series classification approach which anticipates if collisions will occur in the near future. In the sample script examples/use_case_3.py, RealPreprocessor first creates an image dataset using specifications in the data_config yaml file. The function im2graph then converts the image dataset to a scene graph dataset using specifications in the scenegraph_extraction_config.yaml file. Finally, Scenegraph_Trainer loads a pre-trained model to output the collision prediction for the created scene graph dataset. In collision prediction, each frame in a sequence has an output, whereas risk assessment has one output for each sequence. 
+
+To run this use case, use the following commands
+```shell
+$ cd examples
+$ python use_case_3.py
+```
+This use case uses three configuration objects for each stage of data processing, each of which are derived from their respective yaml files. The paths to the yaml files are arguments used to create the configuration objects.
+
+
+Image dataset - data_preprocessing_config.yaml
+```shell
+def extract_seq():
+    real_data_preprocessing_config = configuration(r"use_case_3_data_preprocessing_config.yaml",from_function = True)                                                                                                                             #config should contain path to folder containing sequence to evaluate
+```
+
+Scenegraph dataset - scenegraph_extraction_config.yaml
+```shell
+def im2graph():
+    real_scenegraph_extraction_config = configuration(r"use_case_3_scenegraph_extraction_config.yaml",from_function = True)
+#config should contain path to pkl containing preprocessed RawImageDataset
+```
+
+trainer - learning_config.yaml
+```shell
+    training_config = configuration(r"use_case_3_learning_config.yaml",from_function = True)
+#task_type in learning config training_configuration should be set to collision_prediction
+#model_load_path should contain path to pretrained trainer in sg2vec/examples/pretrained_models
+#load_model should be set to True
+```
+
+Arguments provided by these yaml files can again be manipulated by the user.
+
 
 ### Use Case 4: Evaluating Transfer Learning
 TODO
