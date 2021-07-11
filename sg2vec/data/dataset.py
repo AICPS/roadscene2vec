@@ -1,6 +1,9 @@
 ### keep for developement.
 # import sys, os
 # sys.path.append(os.path.dirname(sys.path[0]))
+import sys, os
+from pathlib import Path
+sys.path.append(str(Path("../../")))
 from abc import ABC
 # from pathlib import Path
 # from tqdm import tqdm
@@ -58,12 +61,11 @@ class BaseDataset(ABC):
     #load/save data from dataset_path into data, labels, meta
     def save(self):
         with open(self.dataset_save_path, 'wb') as f:
-            pkl.dump(self, f, fix_imports=False)
+            pkl.dump(self, f)
 
     def load(self):
         with open(self.dataset_save_path, 'rb') as f:
-            pathlib.WindowsPath = pathlib.PosixPath
-            return pkl.load(f, fix_imports=False)
+            return pkl.load(f)
 
 
 '''

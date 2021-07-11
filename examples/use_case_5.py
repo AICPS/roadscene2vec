@@ -1,24 +1,32 @@
-import numpy as np
-import networkx as nx
-import pandas as pd
-from collections import defaultdict 
-from pathlib import Path
-from networkx.drawing.nx_agraph import to_agraph
-import tqdm
-import matplotlib
-matplotlib.use("Agg")
-
 import sys, os
 sys.path.append(os.path.dirname(sys.path[0]))
+import sg2vec
 import sg2vec.data.real_preprocessor as ip
 from sg2vec.util.config_parser import configuration
 import sg2vec.scene_graph.extraction.image_extractor as RealEx
 from sg2vec.learning.util.trainer import Scenegraph_Trainer
+from sg2vec.learning.util.metrics import *
 from sg2vec.data.dataset import SceneGraphDataset
-sys.modules['util'] = sg2vec.util
-
 from sg2vec.learning.util.trainer import Scenegraph_Trainer
 from sg2vec.scene_graph.relation_extractor import Relations  #use case will break when you remove relations from relation_extractor
+
+
+import numpy as np
+import networkx as nx
+import pandas as pd
+from collections import defaultdict 
+from collections import Counter
+from pathlib import Path
+from networkx.drawing.nx_agraph import to_agraph
+from tqdm import tqdm
+import matplotlib
+matplotlib.use("Agg")
+import wandb
+import torch.nn as nn
+
+
+sys.modules['util'] = sg2vec.util
+
 
 
 def add_node(g, node, label):
@@ -101,13 +109,12 @@ def parse_attn_weights(node_attns, sequences, dest_dir, visualize=False):
             for (node, data) in reversed_g.nodes(data=True):
                 if root_idx and ego_idx:
                     break
-                if data['label'].startswith('Ego'):
+                if data['label'].startswith('ego') or data['label'].startswith('Ego'):
                     ego_idx = node
                     reversed_g.nodes[ego_idx]['pos'] = "0,20.0!"
                 elif data['label'].startswith('Root'):
                     root_idx = node
                     reversed_g.nodes[root_idx]['pos'] = "0,-20.0!"
-            # import pdb; pdb.set_trace()
             folder_name = sequences[idx]['folder_name']
             frame_num = sequences[idx]['frame_number']
             folder_path = dest_dir / folder_name
@@ -116,19 +123,39 @@ def parse_attn_weights(node_attns, sequences, dest_dir, visualize=False):
             # visualize_graph(reversed_g, "./tmp.png")
     return node_attns_list
 
-def inspect_trainer(iterations=1):
+def inspect_trainer(training_config):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''
-    
-    training_config = configuration(r"C:\Users\harsi\av\sg2vec\config\learning_config.yaml",from_function = True) #replace with path to sg2vec\config\learning_config.yaml
-    trainer = Scenegraph_Trainer(training_config)
+    iterations = training_config.use_case_5_data["iterations"]
+    #replace with path to sg2vec\config\learning_config.yaml
+    wandb_arg= wandb.init(project=training_config.wandb_configuration['project'], entity=training_config.wandb_configuration['entity'])
+    trainer = Scenegraph_Trainer(training_config, wandb_arg)
     trainer.split_dataset()
     trainer.load_model()
+    trainer.loss_func = nn.CrossEntropyLoss()
+#     trainer.build_model()
+    #for i in range(iterations):
     # outputs, labels, metric, folder_names = trainer.evaluate()
     
+    dest_dir = Path(training_config.use_case_5_data["visualize_save_path"]).resolve()
+    dest_dir.mkdir(exist_ok=True)
     
-    outputs_train, labels_train, folder_names_train, acc_loss_train, attns_train, node_attns_train = trainer.inference(trainer.training_data, trainer.training_labels)
-    outputs_test, labels_test, folder_names_test, acc_loss_test, attns_test, node_attns_test = trainer.inference(trainer.testing_data, trainer.testing_labels)
-    
+    training_tuple = trainer.inference(trainer.training_data, trainer.training_labels)
+    outputs_train = training_tuple[0]
+    labels_train = training_tuple[1]
+    folder_names_train = training_tuple[15]
+    acc_loss_train = training_tuple[2]
+    attns_train = training_tuple[3] 
+    node_attns_train = training_tuple[4]
+#     outputs_train, labels_train, folder_names_train, acc_loss_train, attns_train, node_attns_train = trainer.inference(trainer.training_data, trainer.training_labels)
+#     outputs_test, labels_test, folder_names_test, acc_loss_test, attns_test, node_attns_test, *_ = trainer.inference(trainer.testing_data, trainer.testing_labels)
+    testing_tuple = trainer.inference(trainer.testing_data, trainer.testing_labels)
+    outputs_test = testing_tuple[0]
+    labels_test = testing_tuple[1]
+    folder_names_test = testing_tuple[15]
+    acc_loss_test = testing_tuple[2]
+    attns_test = testing_tuple[3]
+    node_attns_test = testing_tuple[4]
+
 
     metrics = {}
     metrics['train'] = get_metrics(outputs_train, labels_train)
@@ -144,17 +171,14 @@ def inspect_trainer(iterations=1):
     columns = ['safe_level', 'risk_level', 'prediction', 'label', 'folder_name', 'attn_weights', 'node_attns_score']
     inspecting_result_df = pd.DataFrame(columns=columns)
 
-    dest_dir = Path('/home/louisccc/NAS/louisccc/av/post_visualization_carla_2').resolve()
-    dest_dir.mkdir(exist_ok=True)
-
     node_attns_train_proc = []
     for i in tqdm(range(len(trainer.training_data))):
-        node_attns_train_proc += parse_attn_weights(node_attns_train[i], trainer.training_data[i]['sequence'], dest_dir, visualize=True)
+        node_attns_train_proc += parse_attn_weights(node_attns_train[i], trainer.training_data[i]['sequence'], dest_dir, visualize=False)
 
     node_attns_test_proc = []
     for i in tqdm(range(len(trainer.testing_data))):
-        node_attns_test_proc += parse_attn_weights(node_attns_test[i], trainer.testing_data[i]['sequence'], dest_dir, vizualize=True)
-
+        node_attns_test_proc += parse_attn_weights(node_attns_test[i], trainer.testing_data[i]['sequence'], dest_dir, visualize=False)
+    
     for output, label, folder_name, attns, node_attns in zip(outputs_train, labels_train, folder_names_train, attns_train, node_attns_train_proc):
         inspecting_result_df = inspecting_result_df.append(
             {"safe_level":output[0],
@@ -176,8 +200,9 @@ def inspect_trainer(iterations=1):
              "attn_weights":{idx:value for idx, value in enumerate(attns)},
              "node_attns_score": node_attns}, ignore_index=True
         )
-    inspecting_result_df.to_csv("inspect_image.csv", index=False, columns=columns)
+    inspecting_result_df.to_csv(training_config.use_case_5_data["inspect_csv_store_path"], index=False, columns=columns)
 
 if __name__ == "__main__":
-    inspect_trainer()
+    training_config = configuration(r"use_case_5_config.yaml",from_function = True)
+    inspect_trainer(training_config)
     

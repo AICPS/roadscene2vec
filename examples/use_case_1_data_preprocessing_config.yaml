@@ -1,0 +1,12 @@
+---
+dataset_type: 'image'
+location_data:
+    #TODO: revise this configuration file
+    input_path: 'Z:\louisccc\av\honda_data\filtered_clips\lanechange'
+    data_save_path: 'D:\research\av_data\20_frame_all_lane_change.pkl'
+frame_data:
+    frames_limit: 20
+output_format:
+    height: 64
+    width: 64
+    color: "RGB"

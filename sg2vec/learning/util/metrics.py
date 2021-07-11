@@ -102,6 +102,39 @@ def log_wandb(metrics):
     })
     
 
+def log_wandb_transfer_learning(metrics):
+    wandb.log({
+        "val_acc": metrics['test']['acc'],
+        "val_acc_balanced": metrics['test']['balanced_acc'],
+        "val_loss": metrics['test']['loss'],
+        'val_auc': metrics['test']['auc'],
+        'val_f1': metrics['test']['f1'],
+        'val_precision': metrics['test']['precision'],
+        'val_recall': metrics['test']['recall'],
+        'val_conf': metrics['test']['confusion'],
+        'val_fpr': metrics['test']['fpr'],
+        'val_tnr': metrics['test']['tnr'],
+        'val_fnr': metrics['test']['fnr'],
+        'val_avg_seq_len': metrics['test']['avg_seq_len'],
+        'val_avg_pred_frame': metrics['test']['avg_prediction_frame'],
+        'val_avg_pred_risky_indices': metrics['test']['avg_predicted_risky_indices'],
+        'val_avg_pred_safe_indices': metrics['test']['avg_predicted_safe_indices'],
+        'best_epoch': metrics['best_epoch'],
+        'best_val_loss': metrics['best_val_loss'],
+        'best_val_acc': metrics['best_val_acc'],
+        'best_val_auc': metrics['best_val_auc'],
+        'best_val_conf': metrics['best_val_conf'],
+        'best_val_mcc': metrics['best_val_mcc'],
+        'best_val_acc_balanced': metrics['best_val_acc_balanced'],
+        'val_mcc': metrics['test']['mcc'],
+        'avg_inf_time': metrics['avg_inf_time'],
+        'best_avg_pred_frame': metrics['best_avg_pred_frame'],
+        'test_seq_tpr': metrics['test']['seq_tpr'],
+        'test_seq_tnr': metrics['test']['seq_tnr'],
+        'test_seq_fpr': metrics['test']['seq_fpr'],
+        'test_seq_fnr': metrics['test']['seq_fnr']
+    })
+
 def log_im_wandb(metrics):
     wandb.log({
         "train_acc": metrics['train']['acc'],

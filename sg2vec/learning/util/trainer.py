@@ -77,7 +77,7 @@ class Trainer:
 
     def split_dataset(self): #this is init_dataset from multimodal
         if self.config.training_configuration['task_type'] == 'cnn image classification':
-            self.training_data, self.testing_data, self.feature_list = self.build_real_image_dataset(self.config.location_data["input_path"], self.config.training_configuration["split_ratio"], downsample=self.config.training_configuration["downsample"], seed=self.config.seed, transfer_path=self.config.location_data["transfer_path"])
+            self.training_data, self.testing_data, self.feature_list = self.build_real_image_dataset()
             self.training_labels = np.array([ i[1] for i in self.training_data])
             self.testing_labels = np.array([ i[1] for i in self.testing_data])
             self.training_clip_name = np.array([ i[2] for i in self.training_data])
@@ -93,7 +93,7 @@ class Trainer:
                 print("Num of Testing Labels in Each Class: " + str(np.unique(self.testing_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights)) 
      
         elif (self.config.training_configuration['task_type'] in ['sequence_classification','graph_classification','collision_prediction']):
-            self.training_data, self.testing_data, self.feature_list = self.build_scenegraph_dataset(self.config.location_data["input_path"], self.config.training_configuration["split_ratio"], downsample=self.config.training_configuration["downsample"], seed=self.config.seed, transfer_path=self.config.location_data["transfer_path"])
+            self.training_data, self.testing_data, self.feature_list = self.build_scenegraph_dataset()
             self.total_train_labels = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.training_data]) # used to compute frame-level class weighting
             self.total_test_labels  = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.testing_data])
             self.training_labels = [data['label'] for data in self.training_data]
@@ -270,6 +270,8 @@ class Scenegraph_Trainer(Trainer):
             for ind, seq in enumerate(sorted_seq): 
                 data_to_append = {"sequence":process_real_image_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 self.transfer_data.append(data_to_append)
+        else:
+            raise ValueError('dataset_type unrecognized')
                 
         self.total_transfer_data_labels = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.transfer_data])
         self.transfer_data_labels = [data['label'] for data in self.transfer_data]
@@ -293,7 +295,7 @@ class Scenegraph_Trainer(Trainer):
         seq_tpr, \
         seq_fpr, \
         seq_tnr, \
-        seq_fnr = self.inference(self.transfer_data, self.transfer_data_labels)
+        seq_fnr, _ = self.inference(self.transfer_data, self.transfer_data_labels)
 
         metrics['test'] = get_metrics(outputs_test, labels_test)
         metrics['test']['loss'] = acc_loss_test
@@ -320,7 +322,7 @@ class Scenegraph_Trainer(Trainer):
         metrics['best_avg_pred_frame'] = self.best_avg_pred_frame
         
         if self.config.training_configuration["n_fold"] <= 1 or self.log:
-            log_wandb(metrics)
+            log_wandb_transfer_learning(metrics)
         
         return outputs_test, labels_test, metrics
 
@@ -480,6 +482,7 @@ class Scenegraph_Trainer(Trainer):
             acc_loss_test = 0
             attns_weights = []
             node_attns = []
+            folder_names = []
             sum_prediction_frame = 0
             sum_seq_len = 0
             num_risky_sequences = 0
@@ -497,6 +500,7 @@ class Scenegraph_Trainer(Trainer):
                 with torch.no_grad():
                     for i in range(len(testing_data)): # iterate through scenegraphs
                         data, label = testing_data[i]['sequence'], testing_labels[i]
+                        folder_names.append(testing_data[i]['folder_name'])
                         data_list = [Data(x=g['node_features'], edge_index=g['edge_index'], edge_attr=g['edge_attr']) for g in data]
                         self.test_loader = DataLoader(data_list, batch_size=len(data_list))
                         sequence = next(iter(self.test_loader)).to(self.config.training_configuration["device"])
@@ -540,15 +544,15 @@ class Scenegraph_Trainer(Trainer):
                         outputs = torch.cat([outputs, output], dim=0)
                         labels = torch.cat([labels, label], dim=0)
     
-                        # if 'lstm_attn_weights' in attns:
-                        #     attns_weights.append(attns['lstm_attn_weights'].squeeze().detach().cpu().numpy().tolist())
-                        # if 'pool_score' in attns:
-                        #     node_attn = {}
-                        #     node_attn["original_batch"] = sequence.batch.detach().cpu().numpy().tolist()
-                        #     node_attn["pool_perm"] = attns['pool_perm'].detach().cpu().numpy().tolist()
-                        #     node_attn["pool_batch"] = attns['batch'].detach().cpu().numpy().tolist()
-                        #     node_attn["pool_score"] = attns['pool_score'].detach().cpu().numpy().tolist()
-                        #     node_attns.append(node_attn)
+                        if 'lstm_attn_weights' in attns:
+                            attns_weights.append(attns['lstm_attn_weights'].squeeze().detach().cpu().numpy().tolist())
+                        if 'pool_score' in attns:
+                            node_attn = {}
+                            node_attn["original_batch"] = sequence.batch.detach().cpu().numpy().tolist()
+                            node_attn["pool_perm"] = attns['pool_perm'].detach().cpu().numpy().tolist()
+                            node_attn["pool_batch"] = attns['batch'].detach().cpu().numpy().tolist()
+                            node_attn["pool_score"] = attns['pool_score'].detach().cpu().numpy().tolist()
+                            node_attns.append(node_attn)
     
             avg_risky_prediction_frame = sum_prediction_frame / num_risky_sequences #avg of first indices in a sequence that a risky frame is first correctly predicted.
             avg_risky_seq_len = sum_seq_len / num_risky_sequences #sequence length for comparison with the prediction frame metric. 
@@ -575,7 +579,7 @@ class Scenegraph_Trainer(Trainer):
                     seq_tpr, \
                     seq_fpr, \
                     seq_tnr, \
-                    seq_fnr
+                    seq_fnr, folder_names
 
    
 
@@ -596,7 +600,7 @@ class Scenegraph_Trainer(Trainer):
         seq_tpr, \
         seq_fpr, \
         seq_tnr, \
-        seq_fnr = self.inference(self.training_data, self.training_labels)
+        seq_fnr, _ = self.inference(self.training_data, self.training_labels)
 
         metrics['train'] = get_metrics(outputs_train, labels_train)
         metrics['train']['loss'] = acc_loss_train
@@ -625,7 +629,7 @@ class Scenegraph_Trainer(Trainer):
         seq_tpr, \
         seq_fpr, \
         seq_tnr, \
-        seq_fnr = self.inference(self.testing_data, self.testing_labels)
+        seq_fnr, _ = self.inference(self.testing_data, self.testing_labels)
 
         metrics['test'] = get_metrics(outputs_test, labels_test)
         metrics['test']['loss'] = acc_loss_test
@@ -820,7 +824,7 @@ class Image_Trainer(Trainer):
         else:
             modified_class_0, modified_y_0 = class_0, y_0
         train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=self.config.training_configuration['split_ratio'], shuffle=True, stratify=modified_y_0+y_1, random_state=self.config.seed)
-        if self.config.location_data["transfer_path"] != None:#what is this meant to do if input path is meant to load in sq dataset obj?
+        if self.config.location_data["transfer_path"] != None:
             test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
             image_sequence = class_1+class_0
             return image_sequence, test, self.feature_list 

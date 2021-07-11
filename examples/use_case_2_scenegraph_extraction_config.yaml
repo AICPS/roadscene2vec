@@ -28,3 +28,4 @@ relation_extraction_settings:
   
 image_setttings: #currently tuned for Honda
     BEV_PATH: 'D:\research\sg2vec\sg2vec\scene_graph\extraction\bev\bev.json'
+
