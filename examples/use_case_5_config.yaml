@@ -1,13 +1,14 @@
 ---
 use_case_5_data:
-    visualize_save_path: '\viz'
+    vizualize: True
+    visualize_save_path: 'D:\research\av_data\viz'
     iterations: 1
     inspect_csv_store_path: 'inspect_image.csv'
 location_data:
     input_path: 'D:\research\av_data\20_frame_all_lane_change_sg.pkl'
     #TODO: revise this configuration file. copy it from 3_train_graph_learning.py argparser config
     #scenegraph_dataset_object_path: 'C:/av_data/preprocessed_dataset.pkl'
-    transfer_path: 'D:\research\av_data\20_frame_all_lane_change_sg.pkl' #Path to the transfer file.
+    transfer_path: Null #Path to the transfer file.
 model_configuration:
   model: 'mrgcn'
   num_layers: 3

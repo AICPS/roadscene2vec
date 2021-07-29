@@ -8,7 +8,8 @@ from sg2vec.learning.util.trainer import Scenegraph_Trainer
 from sg2vec.learning.util.metrics import *
 from sg2vec.data.dataset import SceneGraphDataset
 from sg2vec.learning.util.trainer import Scenegraph_Trainer
-from sg2vec.scene_graph.relation_extractor import Relations  #use case will break when you remove relations from relation_extractor
+# from sg2vec.scene_graph.relation_extractor import Relations  #use case will break when you remove relations from relation_extractor
+from sg2vec.scene_graph import relation_extractor   #use case will break when you remove relations from relation_extractor
 
 
 import numpy as np
@@ -42,14 +43,15 @@ def add_node(g, node, label):
     g.add_node(node, label=label, style='filled', fillcolor=color)
 
 def add_relation(g, src, relation, dst):
-    g.add_edge(src, dst, object=relation, label=Relations(relation).name)
+    g.add_edge(src, dst, object=relation, label=relation)
 
 def visualize_graph(g, to_filename):
+    #import pdb;pdb.set_trace()
     A = to_agraph(g)
     A.layout('dot')
     A.draw(to_filename)
 
-def parse_attn_weights(node_attns, sequences, dest_dir, visualize=False):
+def parse_attn_weights(node_attns, sequences, dest_dir, visualize):
 
     original_batch = node_attns['original_batch']
     pool_perm = node_attns['pool_perm']
@@ -91,6 +93,7 @@ def parse_attn_weights(node_attns, sequences, dest_dir, visualize=False):
                 dst_node_name = reversed_node_order[dst_idx].name
                 relation = scenegraph_edge_attr[edge_idx]
 
+                #import pdb; pdb.set_trace()
                 add_node(reversed_g, src_idx, src_node_name)
                 add_node(reversed_g, dst_idx, dst_node_name)
                 add_relation(reversed_g, src_idx, relation, dst_idx)
@@ -119,6 +122,8 @@ def parse_attn_weights(node_attns, sequences, dest_dir, visualize=False):
             frame_num = sequences[idx]['frame_number']
             folder_path = dest_dir / folder_name
             folder_path.mkdir(exist_ok=True)
+#             if idx == 9:
+#                 import pdb; pdb.set_trace()
             visualize_graph(reversed_g, str(folder_path / (str(frame_num) + '.png')))
             # visualize_graph(reversed_g, "./tmp.png")
     return node_attns_list
@@ -127,8 +132,11 @@ def inspect_trainer(training_config):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''
     iterations = training_config.use_case_5_data["iterations"]
     #replace with path to sg2vec\config\learning_config.yaml
-    wandb_arg= wandb.init(project=training_config.wandb_configuration['project'], entity=training_config.wandb_configuration['entity'])
-    trainer = Scenegraph_Trainer(training_config, wandb_arg)
+    if training_config.wandb_configuration['project'] != None:
+        wandb_arg= wandb.init(project=training_config.wandb_configuration['project'], entity=training_config.wandb_configuration['entity'])
+    else:
+        wandb_arg = None
+    trainer = Scenegraph_Trainer(training_config, None)
     trainer.split_dataset()
     trainer.load_model()
     trainer.loss_func = nn.CrossEntropyLoss()
@@ -172,12 +180,15 @@ def inspect_trainer(training_config):
     inspecting_result_df = pd.DataFrame(columns=columns)
 
     node_attns_train_proc = []
+    count = 0
     for i in tqdm(range(len(trainer.training_data))):
-        node_attns_train_proc += parse_attn_weights(node_attns_train[i], trainer.training_data[i]['sequence'], dest_dir, visualize=False)
-
+#         if count == 8:
+#             import pdb; pdb.set_trace()
+        node_attns_train_proc += parse_attn_weights(node_attns_train[i], trainer.training_data[i]['sequence'], dest_dir, training_config.use_case_5_data["vizualize"])
+        count += 1
     node_attns_test_proc = []
     for i in tqdm(range(len(trainer.testing_data))):
-        node_attns_test_proc += parse_attn_weights(node_attns_test[i], trainer.testing_data[i]['sequence'], dest_dir, visualize=False)
+        node_attns_test_proc += parse_attn_weights(node_attns_test[i], trainer.testing_data[i]['sequence'], dest_dir, training_config.use_case_5_data["vizualize"])
     
     for output, label, folder_name, attns, node_attns in zip(outputs_train, labels_train, folder_names_train, attns_train, node_attns_train_proc):
         inspecting_result_df = inspecting_result_df.append(
