@@ -38,18 +38,23 @@ import wandb
 
 from sg2vec.learning.util.model_input_preprocessing import *
 
+import sg2vec
+sys.modules['data'] = sg2vec.data
+
 class Trainer:
 
     def __init__(self, config, wandb_a = None):
         self.config = config
         if wandb_a != None:
+            self.log = True
             self.wandb = wandb_a
             self.wandb_config = wandb_a.config
             # load config into wandb
             for section in self.config.args:
                 for config_arg in self.config.args[section]:
                     self.wandb_config[section+'.'+config_arg] = self.config.args[section][config_arg]
-                      
+        else:
+            self.log = False             
         if self.config.training_configuration["seed"] != None: 
             self.config.seed = self.config.training_configuration["seed"]
             np.random.seed(self.config.seed)
@@ -142,7 +147,8 @@ class Trainer:
                 self.loss_func = nn.CrossEntropyLoss(weight=self.class_weights.float().to(self.config.training_configuration["device"]))
      
             #wandb.watch(self.model, log="all")
-            self.wandb.watch(self.model, log="all")
+            if self.log:
+                self.wandb.watch(self.model, log="all")
 
 
     # Pick between Standard Training and KFold Cross Validation Training
@@ -280,7 +286,7 @@ class Scenegraph_Trainer(Trainer):
 
     def evaluate_transfer_learning(self, current_epoch=None):
         metrics = {}
-        self.log = True
+        #self.log = True
         outputs_test, \
         labels_test, \
         acc_loss_test, \
@@ -321,7 +327,7 @@ class Scenegraph_Trainer(Trainer):
         metrics['best_val_acc_balanced'] = self.best_val_acc_balanced
         metrics['best_avg_pred_frame'] = self.best_avg_pred_frame
         
-        if self.config.training_configuration["n_fold"] <= 1 or self.log:
+        if self.config.training_configuration["n_fold"] <= 1 and self.log:
             log_wandb_transfer_learning(metrics)
         
         return outputs_test, labels_test, metrics
@@ -462,10 +468,10 @@ class Scenegraph_Trainer(Trainer):
                
                self.best_val_loss = 99999
                self.train()
-               self.log = True
+               #self.log = True
                outputs_train, labels_train, outputs_test, labels_test, metrics = self.evaluate(self.fold)
                self.update_sg_cross_valid_metrics(outputs_train, labels_train, outputs_test, labels_test, metrics)
-               self.log = False
+               #self.log = False
     
                if self.fold != self.config.training_configuration["n_fold"]:            
                    del self.model
@@ -657,7 +663,7 @@ class Scenegraph_Trainer(Trainer):
         metrics['best_val_acc_balanced'] = self.best_val_acc_balanced
         metrics['best_avg_pred_frame'] = self.best_avg_pred_frame
         
-        if self.config.training_configuration["n_fold"] <= 1 or self.log:
+        if self.config.training_configuration["n_fold"] <= 1 and self.log:
             log_wandb(metrics)
         
         return outputs_train, labels_train, outputs_test, labels_test, metrics
@@ -775,8 +781,8 @@ class Scenegraph_Trainer(Trainer):
             print('\nFinal Averaged Results')
             print("\naverage train loss: " + str(final_results['train']['loss']) + ", average acc:", final_results['train']['acc'], final_results['train']['confusion'], final_results['train']['auc'], \
                 "\naverage test loss: " +  str(final_results['test']['loss']) + ", average acc:", final_results['test']['acc'],  final_results['test']['confusion'], final_results['test']['auc'])
-
-            log_wandb(final_results)
+            if self.log:
+                log_wandb(final_results)
             
             return self.results['outputs_train'], self.results['labels_train'], self.results['outputs_test'], self.results['labels_test'], final_results
 
@@ -972,7 +978,7 @@ class Image_Trainer(Trainer):
         metrics['best_val_mcc'] = self.best_val_mcc
         metrics['best_val_acc_balanced'] = self.best_val_acc_balanced
            
-        if self.config.training_configuration['n_fold'] <= 1 or self.log:  
+        if self.config.training_configuration['n_fold'] <= 1 and self.log:  
             self.log2wandb(metrics)
     
         return categories_train, categories_test, metrics
@@ -1057,8 +1063,8 @@ class Image_Trainer(Trainer):
             print('\nFinal Averaged Results')
             print("\naverage train loss: " + str(final_metrics['train']['loss']) + ", average acc:", final_metrics['train']['acc'], final_metrics['train']['confusion'], final_metrics['train']['auc'], \
                 "\naverage test loss: " +  str(final_metrics['test']['loss']) + ", average acc:", final_metrics['test']['acc'],  final_metrics['test']['confusion'], final_metrics['test']['auc'])
-    
-            self.log2wandb(final_metrics)
+            if self.log:
+                self.log2wandb(final_metrics)
             
             # final combined results and metrics
             return self.results['outputs_train'], self.results['labels_train'], self.results['outputs_test'], self.results['labels_test'], final_metrics
@@ -1098,10 +1104,10 @@ class Image_Trainer(Trainer):
            
             self.best_val_loss = 99999
             self.train()
-            self.log = True
+            #self.log = True
             categories_train, categories_test, metrics = self.eval_model(self.fold)
             self.update_im_cross_valid_metrics(categories_train, categories_test, metrics)
-            self.log = False
+            #self.log = False
 
             if self.fold != self.config.training_configuration["n_fold"]:
                 self.reset_weights(self.model)
@@ -1244,8 +1250,8 @@ class Image_Trainer(Trainer):
                 print('\nFinal Averaged Results')
                 print("\naverage train loss: " + str(final_metrics['train']['loss']) + ", average acc:", final_metrics['train']['acc'], final_metrics['train']['confusion'], final_metrics['train']['auc'], \
                     "\naverage test loss: " +  str(final_metrics['test']['loss']) + ", average acc:", final_metrics['test']['acc'],  final_metrics['test']['confusion'], final_metrics['test']['auc'])
-    
-                self.log2wandb(final_metrics)
+                if self.log:
+                    self.log2wandb(final_metrics)
                 
                 # final combined results and metrics
                 return self.results['outputs_train'], self.results['labels_train'], self.results['outputs_test'], self.results['labels_test'], final_metrics

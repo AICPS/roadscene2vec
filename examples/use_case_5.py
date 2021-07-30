@@ -132,11 +132,11 @@ def inspect_trainer(training_config):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''
     iterations = training_config.use_case_5_data["iterations"]
     #replace with path to sg2vec\config\learning_config.yaml
-    if training_config.wandb_configuration['project'] != None:
+    if training_config.wandb_configuration['project'] != None and training_config.wandb_configuration['entity'] != None:
         wandb_arg= wandb.init(project=training_config.wandb_configuration['project'], entity=training_config.wandb_configuration['entity'])
     else:
         wandb_arg = None
-    trainer = Scenegraph_Trainer(training_config, None)
+    trainer = Scenegraph_Trainer(training_config, wandb_arg)
     trainer.split_dataset()
     trainer.load_model()
     trainer.loss_func = nn.CrossEntropyLoss()
