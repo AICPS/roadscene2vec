@@ -25,7 +25,7 @@ The keyboard is used to configure the bev projection, available inputs include:
 
 **Distance Relations (Lane Line Distances)**
 
-Click on the top and bottom lane line, then the right lane line to get the relative lane length and width.
+Click on the top and bottom of a single lane line marking, then click once on the parallel lane line to the right or left of the first one.  This enables the code to get the relative lane length and width of the lanes and convert pixel distances to feet.
 
 *In our experiments, the lane length and width are fixed to 10 and 12 ft. respectively following U.S. Highway Standards.*
 
