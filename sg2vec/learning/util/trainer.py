@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, pdb
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 import torch
@@ -795,7 +795,6 @@ class Image_Trainer(Trainer):
         image_dataset = RawImageDataset()
         image_dataset.dataset_save_path = self.config.location_data["input_path"]
         self.image_dataset = image_dataset.load()
-          
 #         self.feature_list = set()
 #         for i in range(self.config.training_configuration['num_of_classes']):
 #             self.feature_list.add("type_"+str(i))
@@ -811,8 +810,7 @@ class Image_Trainer(Trainer):
                 self.unique_clips[category] += 1
             else:
                 self.unique_clips[category] = 1
-            seq_data = np.array(process_cnn_image_data(self.image_dataset.data[seq], self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width))
-            seq_data = torch.from_numpy(seq_data)
+            seq_data = torch.as_tensor([value for value in self.image_dataset.data[seq].values()], dtype=torch.float32) 
             if self.image_dataset.labels[seq] == 0:
                 class_0.append((seq_data,0,category))                                                  
             elif self.image_dataset.labels[seq] == 1:

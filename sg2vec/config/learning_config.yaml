@@ -1,6 +1,6 @@
 ---
 location_data:
-    input_path: 'C:\Users\Anurag\av\sg2vec\scripts\5_frame_honda_lane_change_shortened.pkl'
+    input_path: '/home/arnav/271_carla_image_dataset_20_frame.pkl'
     #TODO: revise this configuration file. copy it from 3_train_graph_learning.py argparser config
     #scenegraph_dataset_object_path: 'C:/av_data/preprocessed_dataset.pkl'
     transfer_path: null #Path to the transfer file.
@@ -42,4 +42,4 @@ training_configuration:
   stats_path: 'best_stats.csv'
 wandb_configuration:
   entity: 'aicps'
-  project: 'av-scenegraph'
+  project: 'sg2vec'

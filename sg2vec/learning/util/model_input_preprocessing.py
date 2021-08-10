@@ -5,20 +5,6 @@ import torch
 import math
 from collections import defaultdict
 
-def process_cnn_image_data(sequence, color_channels, im_height, im_width):
-    seq_data = []
-    # seq is seq num
-    for frame_data in sequence.values(): # yields 
-        #frame_data is dictionary array(h,w,rgb)
-        flip_frame_data = np.zeros((color_channels, im_height, im_width))
-        for h in range(frame_data.shape[0]):
-            for w in range(frame_data.shape[1]):
-                for rgb in range(frame_data.shape[2]):
-                    flip_frame_data[rgb][h][w] = frame_data[h][w][rgb]
-        seq_data.append(flip_frame_data)
-    return seq_data
-
-
 
 # this is for creation of trainer input using carla data 
 #=======================================================

@@ -2,7 +2,11 @@
 dataset_type: 'image'
 location_data:
     #TODO: revise this configuration file
-    input_path: '/louisccc\av\honda_data\filtered_clips\lanechange'
-    data_save_path: '.../preprocessed_dataset_real.pkl'
+    input_path: '/home/louisccc/NAS/louisccc/av/synthesis_data/271_carla/'
+    data_save_path: '/home/arnav/271_carla_image_dataset_20_frame.pkl'
 frame_data:
-    frames_limit: 5
+    frames_limit: 20
+output_format:
+    height: 72
+    width: 128
+    color: "RGB"
