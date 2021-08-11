@@ -2,10 +2,11 @@
 location_data:
     input_path: '/home/arnav/271_carla_image_dataset_5_frame.pkl'
     #TODO: revise this configuration file. copy it from 3_train_graph_learning.py argparser config
+    #TODO: add a comment to every line of this config explaining what the config parameter represents/what options are available
     #scenegraph_dataset_object_path: 'C:/av_data/preprocessed_dataset.pkl'
     transfer_path: null #Path to the transfer file.
 model_configuration:
-  model: 'cnn' #options: mrgcn, mrgin, cnn, cnn_lstm, lstm, gru
+  model: 'resnet50_lstm' #options: mrgcn, mrgin, cnn, cnn_lstm, resnet50_lstm, lstm, gru
   num_layers: 3
   load_model: False
 training_configuration:
@@ -27,6 +28,7 @@ training_configuration:
   dropout: 0.1 #0.25
   nclass: 2
   batch_size: 32
+  bnorm: True #enable or disable batch normalization
   device: 'cuda'
   test_step: 10
   conv_type: 'FastRGCNConv'

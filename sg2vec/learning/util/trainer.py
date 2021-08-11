@@ -24,6 +24,7 @@ from sg2vec.learning.model.lstm import LSTM_Classifier
 from sg2vec.learning.model.mrgcn import MRGCN
 from sg2vec.learning.model.mrgin import MRGIN
 from sg2vec.learning.model.cnn import CNN_Classifier
+from sg2vec.learning.model.resnet50_lstm import ResNet50_LSTM_Classifier
 from torch_geometric.data import Data, DataLoader, DataListLoader
 from sklearn.utils.class_weight import compute_class_weight
 import warnings
@@ -100,9 +101,11 @@ class Trainer:
             self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width),'lstm', self.config).to(self.config.training_configuration["device"])        
         elif self.config.model_configuration["model"]  == "gru":
             self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), 'gru', self.config).to(self.config.training_configuration["device"]) 
+        elif self.config.model_configuration["model"] == "resnet50_lstm":
+            self.model = ResNet50_LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), self.config).to(self.config.training_configuration["device"]) 
         else:
             raise Exception("model selection is invalid: " + self.config.model_configuration["model"])
-        #
+        
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.training_configuration["learning_rate"], weight_decay=self.config.training_configuration["weight_decay"])
         
         if self.config.model_configuration["load_model"]  == False:
