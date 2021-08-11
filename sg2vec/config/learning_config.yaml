@@ -27,7 +27,7 @@ training_configuration:
   dropout: 0.1 #0.25
   nclass: 2
   batch_size: 32
-  device: 'cpu'
+  device: 'cuda'
   test_step: 10
   conv_type: 'FastRGCNConv'
   num_layers: 3

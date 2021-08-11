@@ -65,10 +65,12 @@ class RealPreprocessor(prepproc):
 
         sequence_tensor = {}
         shape = None
+        modulo = 0
+        acc_number = 0
         if(self.dataset.frame_limit != None):
-            step = int(len(images)/self.dataset.frame_limit) #subsample to frame_limit
-        if(self.dataset.frame_limit == None or step == 0):
-            step = 1
+            modulo = int(len(images) / self.dataset.frame_limit)  #subsample to frame_limit #TODO: fix this
+        if(self.dataset.frame_limit == None or modulo == 0):
+            modulo = 1
 
         self.dataset.im_height, self.dataset.im_width = self.conf.output_format["height"], self.conf.output_format["width"]
         if self.conf.output_format["color"] == "RGB":
@@ -76,20 +78,22 @@ class RealPreprocessor(prepproc):
         elif self.conf.output_format["color"] == "Grayscale":
             self.dataset.color_channels = 1
 
-        for i in range(0, len(images), step):
-            image_path = images[i]
-            frame_num = int(Path(image_path).stem)
-            if self.conf.output_format["color"] == "RGB":
-                im = cv2.imread(str(image_path), cv2.IMREAD_COLOR) 
-            elif self.conf.output_format["color"] == "Greyscale":
-                im = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE) 
-            im = cv2.resize(im, (self.dataset.im_height, self.dataset.im_width)).transpose(2, 1, 0) #convert to (channels, height, width) format
-            if shape != None:
-                if im.shape != shape:
-                    raise ValueError("All images in a sequence must have the same shape")
-            else:
-                shape = im.shape
-            sequence_tensor[frame_num] = im 
+        for i in range(0, len(images)):
+            if i % modulo == 0 and acc_number < self.dataset.frame_limit:
+                image_path = images[i]
+                frame_num = int(Path(image_path).stem)
+                if self.conf.output_format["color"] == "RGB":
+                    im = cv2.imread(str(image_path), cv2.IMREAD_COLOR) 
+                elif self.conf.output_format["color"] == "Greyscale":
+                    im = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE) 
+                im = cv2.resize(im, (self.dataset.im_width, self.dataset.im_height)).transpose(2, 0, 1) #convert to (channels, height, width) format
+                if shape != None:
+                    if im.shape != shape:
+                        raise ValueError("All images in a sequence must have the same shape")
+                else:
+                    shape = im.shape
+                sequence_tensor[frame_num] = im 
+                acc_number += 1
         return sequence_tensor
       
     '''Returns RawImageDataset object containing scengraphs, labels, and action types'''
