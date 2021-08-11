@@ -79,44 +79,9 @@ class Trainer:
         self.unique_clips = {}
         self.log = False
 
-
-    def split_dataset(self): #this is init_dataset from multimodal
-        if self.config.training_configuration['task_type'] == 'cnn image classification':
-            self.training_data, self.testing_data, self.feature_list = self.build_real_image_dataset()
-            self.training_labels = np.array([ i[1] for i in self.training_data])
-            self.testing_labels = np.array([ i[1] for i in self.testing_data])
-            self.training_clip_name = np.array([ i[2] for i in self.training_data])
-            self.testing_clip_name = np.array([ i[2] for i in self.testing_data])
-            self.training_data = np.array([i[0].numpy() for i in self.training_data])
-            self.testing_data = np.array([i[0].numpy() for i in self.testing_data])
-            self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.training_labels), self.training_labels))
-            
-            if self.config.training_configuration["n_fold"] <= 1:
-                print("Number of Training Sequences Included: ", len(self.training_data))
-                print("Number of Testing Sequences Included: ", len(self.testing_data))
-                print("Num of Training Labels in Each Class: " + str(np.unique(self.training_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
-                print("Num of Testing Labels in Each Class: " + str(np.unique(self.testing_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights)) 
-     
-        elif (self.config.training_configuration['task_type'] in ['sequence_classification','graph_classification','collision_prediction']):
-            self.training_data, self.testing_data, self.feature_list = self.build_scenegraph_dataset()
-            self.total_train_labels = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.training_data]) # used to compute frame-level class weighting
-            self.total_test_labels  = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.testing_data])
-            self.training_labels = [data['label'] for data in self.training_data]
-            self.testing_labels  = [data['label'] for data in self.testing_data]
-            if self.config.training_configuration['task_type'] == 'sequence_classification':
-                self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.training_labels), self.training_labels))
-                if self.config.training_configuration["n_fold"] <= 1:
-                    print("Number of Sequences Included: ", len(self.training_data))
-                    print("Num Labels in Each Class: " + str(np.unique(self.training_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
-            elif self.config.training_configuration['task_type'] == 'collision_prediction':
-                self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.total_train_labels), self.total_train_labels))
-                if self.config.training_configuration["n_fold"] <= 1:
-                    print("Number of Training Sequences Included: ", len(self.training_data))
-                    print("Number of Testing Sequences Included: ", len(self.testing_data))
-                    print("Number of Training Labels in Each Class: " + str(np.unique(self.total_train_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
-                    print("Number of Testing Labels in Each Class: " + str(np.unique(self.total_test_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
-        else:
-            raise ValueError('split_dataset(): task type error') 
+    #abstract function implemented by subclasses
+    def split_dataset(self):
+        raise NotImplementedError
 
 
     def build_model(self): #this involves changing mrcgn and mrgin files to be compatible with new config tht we pass in
@@ -201,16 +166,18 @@ class Trainer:
                 if epoch_idx % self.config.training_configuration["test_step"] == 0:
                     self.evaluate(epoch_idx)
 
-        elif self.config.training_configuration['task_type'] == 'cnn image classification':
+        elif self.config.training_configuration['task_type'] == 'cnn image classification': #TODO: Move this to the ImageTrainer as an override for its train() function.
             tqdm_bar = tqdm(range(self.config.training_configuration['epochs']))
             for epoch_idx in tqdm_bar: # iterate through epoch   
                 acc_loss_train = 0
                 permutation = np.random.permutation(len(self.training_data)) # shuffle dataset before each epoch
                 self.model.train()
                 for i in range(0, len(self.training_data), self.config.training_configuration['batch_size']): # iterate through batches of the dataset
+                    pdb.set_trace()
                     batch_index = i + self.config.training_configuration['batch_size'] if i + self.config.training_configuration['batch_size'] <= len(self.training_data) else len(self.training_data)
                     indices = permutation[i:batch_index]
                     batch_x, batch_y = self.training_data[indices], self.training_labels[indices]
+                    
                     batch_x, batch_y = self.toGPU(batch_x, torch.float32), self.toGPU(batch_y, torch.long)
                     output = self.model.forward(batch_x).view(-1, 2)
                     loss_train = self.loss_func(output, batch_y)
@@ -258,6 +225,29 @@ class Scenegraph_Trainer(Trainer):
     #optimize call. build_scenegraph_dataset was changed to self
     def __init__(self, config, wandb_a = None):
         super(Scenegraph_Trainer, self).__init__(config, wandb_a)
+
+
+    def split_dataset(self): #this is init_dataset from multimodal
+        if (self.config.training_configuration['task_type'] in ['sequence_classification','graph_classification','collision_prediction']):
+            self.training_data, self.testing_data, self.feature_list = self.build_scenegraph_dataset()
+            self.total_train_labels = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.training_data]) # used to compute frame-level class weighting
+            self.total_test_labels  = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.testing_data])
+            self.training_labels = [data['label'] for data in self.training_data]
+            self.testing_labels  = [data['label'] for data in self.testing_data]
+            if self.config.training_configuration['task_type'] == 'sequence_classification':
+                self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.training_labels), self.training_labels))
+                if self.config.training_configuration["n_fold"] <= 1:
+                    print("Number of Sequences Included: ", len(self.training_data))
+                    print("Num Labels in Each Class: " + str(np.unique(self.training_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
+            elif self.config.training_configuration['task_type'] == 'collision_prediction':
+                self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.total_train_labels), self.total_train_labels))
+                if self.config.training_configuration["n_fold"] <= 1:
+                    print("Number of Training Sequences Included: ", len(self.training_data))
+                    print("Number of Testing Sequences Included: ", len(self.testing_data))
+                    print("Number of Training Labels in Each Class: " + str(np.unique(self.total_train_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
+                    print("Number of Testing Labels in Each Class: " + str(np.unique(self.total_test_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
+        else:
+            raise ValueError('split_dataset(): task type error') 
      
     def build_transfer_learning_dataset(self): #this creates test dataset for transfer learning
         scene_graph_dataset  = SceneGraphDataset()
@@ -790,14 +780,37 @@ class Scenegraph_Trainer(Trainer):
 class Image_Trainer(Trainer):
     def __init__(self, config, wandb_a = None):
         super(Image_Trainer, self).__init__(config, wandb_a)
+
+
+    def split_dataset(self): #this is init_dataset from multimodal
+        if self.config.training_configuration['task_type'] == 'cnn image classification':
+            pdb.set_trace()
+            self.training_data, self.testing_data, self.feature_list = self.build_real_image_dataset()
+            self.training_labels = np.array([i[1] for i in self.training_data])
+            self.testing_labels = np.array([i[1] for i in self.testing_data])
+            self.training_clip_name = np.array([i[2] for i in self.training_data])
+            self.testing_clip_name = np.array([i[2] for i in self.testing_data])
+            self.training_data = np.array([i[0] for i in self.training_data])
+            self.testing_data = np.array([i[0] for i in self.testing_data])
+            self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.training_labels), self.training_labels))
+            
+            if self.config.training_configuration["n_fold"] <= 1:
+                print("Number of Training Sequences Included: ", len(self.training_data))
+                print("Number of Testing Sequences Included: ", len(self.testing_data))
+                print("Num of Training Labels in Each Class: " + str(np.unique(self.training_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
+                print("Num of Testing Labels in Each Class: " + str(np.unique(self.testing_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights)) 
+        else:
+            raise ValueError('split_dataset(): task type error') 
         
+
+    '''Returns lists of tuples train and test each containing (data, label, category)'''
     def build_real_image_dataset(self):
         image_dataset = RawImageDataset()
         image_dataset.dataset_save_path = self.config.location_data["input_path"]
         self.image_dataset = image_dataset.load()
-#         self.feature_list = set()
-#         for i in range(self.config.training_configuration['num_of_classes']):
-#             self.feature_list.add("type_"+str(i))
+        self.feature_list = set()
+        for i in range(self.config.training_configuration['num_of_classes']):
+            self.feature_list.add("type_"+str(i))
               
         class_0 = []
         class_1 = []
@@ -810,20 +823,17 @@ class Image_Trainer(Trainer):
                 self.unique_clips[category] += 1
             else:
                 self.unique_clips[category] = 1
-            seq_data = torch.as_tensor([value for value in self.image_dataset.data[seq].values()], dtype=torch.float32) 
+            
+            seq_data = np.asarray([value for value in self.image_dataset.data[seq].values()], dtype=np.float32) 
             if self.image_dataset.labels[seq] == 0:
                 class_0.append((seq_data,0,category))                                                  
             elif self.image_dataset.labels[seq] == 1:
                 class_1.append((seq_data,1,category))
         y_0 = [0]*len(class_0)  
         y_1 = [1]*len(class_1)
-    
-    
         min_number = min(len(class_0), len(class_1))
         
-        downsample = self.config.training_configuration['downsample']
-              
-        if downsample:
+        if self.config.training_configuration['downsample']:
             modified_class_0, modified_y_0 = resample(class_0, y_0, n_samples=min_number)
         else:
             modified_class_0, modified_y_0 = class_0, y_0
@@ -833,7 +843,7 @@ class Image_Trainer(Trainer):
             image_sequence = class_1+class_0
             return image_sequence, test, self.feature_list 
         #dont do kfold here instead it is done when learn() is called
-        return train, test, self.feature_list # redundant return of self.feature_list                    
+        return train, test, self.feature_list # redundant return of self.feature_list #TODO: address this issue                   
               
     def model_inference(self, X, y, clip_name):
         labels = torch.LongTensor().to(self.config.training_configuration['device'])
