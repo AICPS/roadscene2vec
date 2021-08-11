@@ -19,11 +19,8 @@ from sg2vec.scene_graph.relation_extractor import Relations
 from argparse import ArgumentParser
 from tqdm import tqdm
 
-from sg2vec.learning.model.cnn_lstm import CNN_LSTM_Classifier
-from sg2vec.learning.model.lstm import LSTM_Classifier
 from sg2vec.learning.model.mrgcn import MRGCN
 from sg2vec.learning.model.mrgin import MRGIN
-from sg2vec.learning.model.cnn import CNN_Classifier
 from torch_geometric.data import Data, DataLoader, DataListLoader
 from sklearn.utils.class_weight import compute_class_weight
 import warnings

@@ -24,7 +24,7 @@ def train_Trainer(learning_config, iterations=1):
     categories_test_list = []
 
     for i in range(iterations):
-        if learning_config.training_configuration["task_type"] == 'cnn image classification':
+        if learning_config.training_configuration["task_type"] == 'cnn_image_classification':
             trainer = Image_Trainer(learning_config, wandb_arg)
             trainer.split_dataset()
             trainer.build_model()

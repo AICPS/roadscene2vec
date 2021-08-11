@@ -2,29 +2,17 @@ import sys, os, pdb
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 import torch
-import torch.optim as optim
-import torch.nn as nn
 import numpy as np
-import pandas as pd
-import random
+
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, precision_score, recall_score, roc_auc_score, roc_curve
-from sklearn import preprocessing
-from matplotlib import pyplot as plt
-import math
 from sg2vec.learning.util.trainer import Trainer
 
-from sg2vec.data.dataset import SceneGraphDataset
 from sg2vec.data.dataset import RawImageDataset
-from sg2vec.scene_graph.relation_extractor import Relations
-from argparse import ArgumentParser
 from tqdm import tqdm
 
 from sg2vec.learning.model.cnn_lstm import CNN_LSTM_Classifier
 from sg2vec.learning.model.lstm import LSTM_Classifier
-from sg2vec.learning.model.mrgcn import MRGCN
-from sg2vec.learning.model.mrgin import MRGIN
 from sg2vec.learning.model.cnn import CNN_Classifier
-from torch_geometric.data import Data, DataLoader, DataListLoader
 from sklearn.utils.class_weight import compute_class_weight
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -32,8 +20,6 @@ from sklearn.utils import resample
 import pickle as pkl
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sg2vec.learning.util.metrics import *
-
-from collections import Counter,defaultdict
 import wandb
 
 from sg2vec.learning.util.model_input_preprocessing import *
@@ -42,13 +28,13 @@ import sg2vec
 sys.modules['data'] = sg2vec.data
 
 class Image_Trainer(Trainer):
+
     def __init__(self, config, wandb_a = None):
         super(Image_Trainer, self).__init__(config, wandb_a)
 
-
     def split_dataset(self): #this is init_dataset from multimodal
-        if self.config.training_configuration['task_type'] == 'cnn image classification':
-            self.training_data, self.testing_data, self.feature_list = self.build_real_image_dataset()
+        if self.config.training_configuration['task_type'] == 'cnn_image_classification':
+            self.training_data, self.testing_data = self.build_real_image_dataset()
             self.training_labels = np.array([i[1] for i in self.training_data])
             self.testing_labels = np.array([i[1] for i in self.testing_data])
             self.training_clip_name = np.array([i[2] for i in self.training_data])
@@ -71,9 +57,6 @@ class Image_Trainer(Trainer):
         image_dataset = RawImageDataset()
         image_dataset.dataset_save_path = self.config.location_data["input_path"]
         self.image_dataset = image_dataset.load()
-        self.feature_list = set()
-        for i in range(self.config.training_configuration['num_of_classes']):
-            self.feature_list.add("type_"+str(i))
               
         class_0 = []
         class_1 = []
@@ -103,13 +86,13 @@ class Image_Trainer(Trainer):
         if self.config.location_data["transfer_path"] != None:
             test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
             image_sequence = class_1+class_0
-            return image_sequence, test, self.feature_list 
+            return image_sequence, test
         #dont do kfold here instead it is done when learn() is called
-        return train, test, self.feature_list # redundant return of self.feature_list #TODO: address this issue
+        return train, test
 
 
     def train(self):
-        if self.config.training_configuration['task_type'] == 'cnn image classification':
+        if self.config.training_configuration['task_type'] == 'cnn_image_classification':
             tqdm_bar = tqdm(range(self.config.training_configuration['epochs']))
             for epoch_idx in tqdm_bar: # iterate through epoch   
                 acc_loss_train = 0
@@ -285,7 +268,7 @@ class Image_Trainer(Trainer):
     def update_im_best_metrics(self, metrics, current_epoch):
         if metrics['test']['loss'] < self.best_val_loss:
             self.best_val_loss = metrics['test']['loss']
-            self.best_epoch = current_epoch if current_epoch != None else self.config.epochs
+            self.best_epoch = current_epoch if current_epoch != None else self.config.training_configuration['epochs']
             self.best_val_acc = metrics['test']['acc']
             self.best_val_auc = metrics['test']['auc']
             self.best_val_confusion = metrics['test']['confusion']
