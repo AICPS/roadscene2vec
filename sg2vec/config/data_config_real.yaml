@@ -3,9 +3,9 @@ dataset_type: 'image'
 location_data:
     #TODO: revise this configuration file
     input_path: '/home/louisccc/NAS/louisccc/av/synthesis_data/271_carla/'
-    data_save_path: '/home/arnav/271_carla_image_dataset_20_frame.pkl'
+    data_save_path: '/home/arnav/271_carla_image_dataset_5_frame.pkl'
 frame_data:
-    frames_limit: 20
+    frames_limit: 5
 output_format:
     height: 72
     width: 128

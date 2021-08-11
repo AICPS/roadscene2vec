@@ -1,6 +1,6 @@
 ---
 location_data:
-    input_path: '/home/arnav/271_carla_image_dataset_20_frame.pkl'
+    input_path: '/home/arnav/271_carla_image_dataset_5_frame.pkl'
     #TODO: revise this configuration file. copy it from 3_train_graph_learning.py argparser config
     #scenegraph_dataset_object_path: 'C:/av_data/preprocessed_dataset.pkl'
     transfer_path: null #Path to the transfer file.
@@ -13,7 +13,7 @@ training_configuration:
   scenegraph_dataset_type: "carla" #carla or real
   n_fold: 1 # 2
   num_of_classes: 8 #num of actors
-  learning_rate: 0.0001 #0.00005 
+  learning_rate: 0.0001 #0.00005
   epochs: 200
   cache_path: '../script/image_dataset.pkl'
   transfer_path: ''

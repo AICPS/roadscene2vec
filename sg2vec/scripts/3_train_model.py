@@ -2,7 +2,8 @@ import sys, os
 #import check_gpu as cg
 #os.environ['CUDA_VISIBLE_DEVICES'] = cg.get_free_gpu()
 sys.path.append(os.path.dirname(sys.path[0]))
-from learning.util.trainer import Image_Trainer, Scenegraph_Trainer
+from learning.util.image_trainer import Image_Trainer
+from learning.util.scenegraph_trainer import Scenegraph_Trainer
 import pandas as pd
 from util.config_parser import configuration
 import wandb
