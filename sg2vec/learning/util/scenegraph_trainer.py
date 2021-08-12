@@ -275,10 +275,8 @@ class Scenegraph_Trainer(Trainer):
                
                self.best_val_loss = 99999
                self.train()
-               #self.log = True
                outputs_train, labels_train, outputs_test, labels_test, metrics = self.evaluate(self.fold)
                self.update_sg_cross_valid_metrics(outputs_train, labels_train, outputs_test, labels_test, metrics)
-               #self.log = False
     
                if self.fold != self.config.training_configuration["n_fold"]:            
                    del self.model

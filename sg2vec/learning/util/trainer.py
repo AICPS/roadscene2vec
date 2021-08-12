@@ -78,7 +78,6 @@ class Trainer:
         self.best_val_mcc = -1.0
         self.best_val_acc_balanced = 0
         self.unique_clips = {}
-        self.log = False
 
     #abstract function implemented by subclasses
     def split_dataset(self):
