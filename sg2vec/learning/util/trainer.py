@@ -105,6 +105,7 @@ class Trainer:
         else:
             raise Exception("model selection is invalid: " + self.config.model_configuration["model"])
         
+        #TODO: enable users to choose between Adam or SGD optimizer. also enable users to choose between CrossEntropyLoss, MAELoss, MSELoss, etc. in the config.yaml
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.training_configuration["learning_rate"], weight_decay=self.config.training_configuration["weight_decay"])
         
         if self.config.model_configuration["load_model"]  == False:
