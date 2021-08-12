@@ -56,7 +56,7 @@ class Image_Trainer(Trainer):
     def build_real_image_dataset(self):
         image_dataset = RawImageDataset()
         image_dataset.dataset_save_path = self.config.location_data["input_path"]
-        self.image_dataset = image_dataset.load()
+        image_dataset = image_dataset.load()
               
         class_0 = []
         class_1 = []
