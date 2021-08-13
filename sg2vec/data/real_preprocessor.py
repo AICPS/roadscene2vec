@@ -37,7 +37,6 @@ class RealPreprocessor(prepproc):
         for path in tqdm(all_sequence_dirs):
 
             seq = int(path.stem.split('_')[0])
-            self.dataset.action_types[seq] = "lanechange" #path.stem.split('_')[2] #TODO: this is broken for carla. also, we cannot assume that our users will have their data in this format.
             label_path = (path/"label.txt").resolve()
             ignore_path = (path/"ignore.txt").resolve()
             
@@ -46,16 +45,16 @@ class RealPreprocessor(prepproc):
                     ignore_label = int(label_f.read())
                     if ignore_label:
                         self.dataset.ignore.append(seq)
-                    else: #if don't want to ignore but file to ignore file exists
-                        self.dataset.data[seq] = self._load_images(path)  
-            else:#if don't want to ignore but path to file ignore file doesn't exist
-                self.dataset.data[seq] = self._load_images(path)  
-    
+                        continue #skip to next seq if ignore path exists
+
+            self.dataset.data[seq] = self._load_images(path)
+            self.dataset.action_types[seq] = "lanechange" #path.stem.split('_')[2] #TODO: this is broken for carla. also, we cannot assume that our users will have their data in this format.
             if label_path.exists():
                 with open(str(path/'label.txt'), 'r') as label_file:
                     lines = label_file.readlines()
                     l0 = 1.0 if float(lines[0].strip().split(",")[0]) >= 0 else 0.0 
                     self.dataset.labels[seq] = l0
+
 
     '''Represent each frame in sequence in terms of a tensor'''               
     def _load_images(self, path):

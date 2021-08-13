@@ -91,14 +91,14 @@ def log_wandb(metrics):
         'val_mcc': metrics['test']['mcc'],
         'avg_inf_time': metrics['avg_inf_time'],
         'best_avg_pred_frame': metrics['best_avg_pred_frame'],
-        'test_seq_tpr': metrics['test']['seq_tpr'],
-        'test_seq_tnr': metrics['test']['seq_tnr'],
-        'test_seq_fpr': metrics['test']['seq_fpr'],
-        'test_seq_fnr': metrics['test']['seq_fnr'],
-        'train_seq_tpr': metrics['train']['seq_tpr'],
-        'train_seq_tnr': metrics['train']['seq_tnr'],
-        'train_seq_fpr': metrics['train']['seq_fpr'],
-        'train_seq_fnr': metrics['train']['seq_fnr']
+        # 'test_seq_tpr': metrics['test']['seq_tpr'],
+        # 'test_seq_tnr': metrics['test']['seq_tnr'],
+        # 'test_seq_fpr': metrics['test']['seq_fpr'],
+        # 'test_seq_fnr': metrics['test']['seq_fnr'],
+        # 'train_seq_tpr': metrics['train']['seq_tpr'],
+        # 'train_seq_tnr': metrics['train']['seq_tnr'],
+        # 'train_seq_fpr': metrics['train']['seq_fpr'],
+        # 'train_seq_fnr': metrics['train']['seq_fnr']
     })
     
 
