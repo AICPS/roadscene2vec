@@ -86,18 +86,18 @@ class MRGIN(nn.Module):
             x = self.activation(self.conv[i](x, edge_index, edge_attr))
             x = F.dropout(x, self.dropout, training=self.training)
             if self.pooling_type == "sagpool":
-                p, _, _, batch2, attn_weights['pool_perm'], attn_weights['pool_score'] = self.pool[i](x, edge_index, edge_attr=edge_attr, batch=batch)
+                p, _, _, attn_weights['batch'], attn_weights['pool_perm'], attn_weights['pool_score'] = self.pool[i](x, edge_index, edge_attr=edge_attr, batch=batch)
             elif self.pooling_type == "topk":
-                p, _, _, batch2, attn_weights['pool_perm'], attn_weights['pool_score'] = self.pool[i](x, edge_index, edge_attr=edge_attr, batch=batch)
+                p, _, _, attn_weights['batch'], attn_weights['pool_perm'], attn_weights['pool_score'] = self.pool[i](x, edge_index, edge_attr=edge_attr, batch=batch)
             else:
                 p = x
-                batch2 = batch
+                attn_weights['batch'] = batch
             if self.readout_type == "add":
-                r = global_add_pool(p, batch2)
+                r = global_add_pool(p, attn_weights['batch'])
             elif self.readout_type == "mean":
-                r = global_mean_pool(p, batch2)
+                r = global_mean_pool(p, attn_weights['batch'])
             elif self.readout_type == "max":
-                r = global_max_pool(p, batch2)
+                r = global_max_pool(p, attn_weights['batch'])
             else:
                 r = p
             outputs.append(r)
