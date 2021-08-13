@@ -1,16 +1,16 @@
 ---
 location_data:
-    input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/571_honda_image_dataset_5_frame_128x72.pkl'
+    input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/271_carla_scenegraph.pkl'
     #TODO: revise this configuration file. copy it from 3_train_graph_learning.py argparser config
     #TODO: add a comment to every line of this config explaining what the config parameter represents/what options are available
     #scenegraph_dataset_object_path: 'C:/av_data/preprocessed_dataset.pkl'
     transfer_path: null #Path to the transfer file.
 model_configuration:
-  model: 'cnn' #options: mrgcn, mrgin, cnn, cnn_lstm, resnet50_lstm, lstm, gru
-  num_layers: 3
+  model: 'mrgcn' #options: mrgcn, mrgin, cnn, cnn_lstm, resnet50_lstm, lstm, gru
+  num_layers: 2
   load_model: False
 training_configuration:
-  task_type: 'cnn_image_classification' #options: cnn_image_classification, sequence_classification, graph_classification, collision_prediction
+  task_type: 'sequence_classification' #options: cnn_image_classification, sequence_classification, graph_classification, collision_prediction
   scenegraph_dataset_type: "carla" #options: carla, real
   n_fold: 5
   num_of_classes: 8 #num of actors
@@ -32,7 +32,7 @@ training_configuration:
   device: 'cuda'
   test_step: 10
   conv_type: 'FastRGCNConv'
-  num_layers: 3
+  num_layers: 2
   hidden_dim: 64
   layer_spec: null
   pooling_type: 'sagpool'

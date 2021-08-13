@@ -2,6 +2,5 @@
 dataset_type: 'carla'
 #TODO: revise this configuration file
 location_data:
-    input_path: '/louisccc/av/synthesis_data/271_carla'
-    
-    data_save_path: '.../preprocessed_dataset.pkl'
+    input_path: '/home/louisccc/NAS/louisccc/av/synthesis_data/271_carla'
+    data_save_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/271_carla_scenegraph.pkl'

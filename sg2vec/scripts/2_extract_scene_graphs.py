@@ -16,13 +16,11 @@ def extract_scene_graphs():
         sg_extraction_object.load()
         scenegraph_dataset = sg_extraction_object.getDataSet() #returned scenegraphs from extraction
         scenegraph_dataset.save()
-        scenegraph_dataset.scene_graphs[5][17839641].visualize(r"C:\av_data\carla_5_new_only_ego.dot");
     elif scene_config.dataset_type == "image": #must calibrate birds eye view for real data
         sg_extraction_object = RealEx.RealExtractor(scene_config)
         sg_extraction_object.load()
         scenegraph_dataset = sg_extraction_object.getDataSet() #returned scenegraphs from extraction
         scenegraph_dataset.save()
-        scenegraph_dataset.scene_graphs[5833][61456].visualize(r"C:\av_data\real_image_5833_61456_19_375_no_thresh.dot");
     else:
         raise Invalid_Dataset_Type("Please input a valid dataset type")
         

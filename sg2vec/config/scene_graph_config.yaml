@@ -1,8 +1,8 @@
 ---
 dataset_type: 'carla'
 location_data:
-    input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/preprocessed_data/271_carla_scenegraph.pkl'
-    data_save_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/271_carla_scenegraph.pkl' #where to save scenegraph dataset
+    input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/preprocessed_data/1043_carla_scenegraph.pkl'
+    data_save_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/1043_carla_scenegraph.pkl' #where to save scenegraph dataset
     #TODO: revise this configuration file
 
 relation_extraction_settings:
