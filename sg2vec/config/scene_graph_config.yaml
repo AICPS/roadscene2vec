@@ -1,15 +1,16 @@
 ---
 dataset_type: 'carla'
 location_data:
-    input_path: '.../preprocessed_dataset.pkl'
-    data_save_path: '.../sg_dataset.pkl' #where to save scenegraph dataset
+    input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/preprocessed_data/271_carla_scenegraph.pkl'
+    data_save_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/271_carla_scenegraph.pkl' #where to save scenegraph dataset
     #TODO: revise this configuration file
 
 relation_extraction_settings:
   framenum: 1000
   ACTOR_NAMES: ['car','moto','bicycle','ped','lane','light','sign', 'road']
-  extract_directional_relations: False
-  extract_distance_relations: False
+  extract_directional_relations: True
+  extract_distance_relations: True
+  extract_all_car_car_relations: True
   CAR_PROXIMITY_THRESH_NEAR_COLL: 3
   CAR_PROXIMITY_THRESH_SUPER_NEAR: 7 # max number of feet between a car and another entity to build proximity relation
   CAR_PROXIMITY_THRESH_VERY_NEAR: 10
