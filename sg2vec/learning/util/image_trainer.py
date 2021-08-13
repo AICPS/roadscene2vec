@@ -63,16 +63,16 @@ class Image_Trainer(Trainer):
         class_0_clip_name = []
         class_1_clip_name = []
           
-        for seq in tqdm(self.image_dataset.labels): # for each seq (num total seq,frame,chan,h,w)
-            category = self.image_dataset.action_types[seq]
+        for seq in tqdm(image_dataset.labels): # for each seq (num total seq,frame,chan,h,w)
+            category = image_dataset.action_types[seq]
             if category in self.unique_clips:
                 self.unique_clips[category] += 1
             else:
                 self.unique_clips[category] = 1
-            seq_data = np.stack([value for value in self.image_dataset.data[seq].values()], axis=0)
-            if self.image_dataset.labels[seq] == 0:
+            seq_data = np.stack([value for value in image_dataset.data[seq].values()], axis=0)
+            if image_dataset.labels[seq] == 0:
                 class_0.append((seq_data,0,category))                                                  
-            elif self.image_dataset.labels[seq] == 1:
+            elif image_dataset.labels[seq] == 1:
                 class_1.append((seq_data,1,category))
         y_0 = [0]*len(class_0)  
         y_1 = [1]*len(class_1)
