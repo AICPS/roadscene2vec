@@ -93,15 +93,15 @@ class Trainer:
         elif self.config.model_configuration["model"]  == "mrgin":
             self.model = MRGIN(self.config).to(self.config.training_configuration["device"])
         elif self.config.model_configuration["model"]  == "cnn":
-            self.model = CNN_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), self.config).to(self.config.training_configuration["device"])
+            self.model = CNN_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.training_configuration["device"])
         elif self.config.model_configuration["model"]  == "cnn_lstm":
-            self.model = CNN_LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), self.config).to(self.config.training_configuration["device"])
+            self.model = CNN_LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.training_configuration["device"])
         elif self.config.model_configuration["model"]  == "lstm":
-            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width),'lstm', self.config).to(self.config.training_configuration["device"])        
+            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width),'lstm', self.config).to(self.config.training_configuration["device"])        
         elif self.config.model_configuration["model"]  == "gru":
-            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), 'gru', self.config).to(self.config.training_configuration["device"]) 
+            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), 'gru', self.config).to(self.config.training_configuration["device"]) 
         elif self.config.model_configuration["model"] == "resnet50_lstm":
-            self.model = ResNet50_LSTM_Classifier((self.config.training_configuration['batch_size'], self.image_dataset.frame_limit,self.image_dataset.color_channels, self.image_dataset.im_height, self.image_dataset.im_width), self.config).to(self.config.training_configuration["device"]) 
+            self.model = ResNet50_LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.training_configuration["device"]) 
         else:
             raise Exception("model selection is invalid: " + self.config.model_configuration["model"])
         

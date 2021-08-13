@@ -57,12 +57,17 @@ class Image_Trainer(Trainer):
         image_dataset = RawImageDataset()
         image_dataset.dataset_save_path = self.config.location_data["input_path"]
         image_dataset = image_dataset.load()
+        self.frame_limit = image_dataset.frame_limit
+        self.color_channels = image_dataset.color_channels
+        self.im_width = image_dataset.im_width
+        self.im_height = image_dataset.im_height
               
         class_0 = []
         class_1 = []
         class_0_clip_name = []
         class_1_clip_name = []
-          
+        
+        print("Loading Image Dataset")
         for seq in tqdm(image_dataset.labels): # for each seq (num total seq,frame,chan,h,w)
             category = image_dataset.action_types[seq]
             if category in self.unique_clips:
@@ -87,7 +92,7 @@ class Image_Trainer(Trainer):
             test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
             image_sequence = class_1+class_0
             return image_sequence, test
-        #dont do kfold here instead it is done when learn() is called
+
         return train, test
 
 
