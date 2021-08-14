@@ -49,12 +49,11 @@ class BaseDataset(ABC):
         self.data = None
         self.labels = None
         self.meta = None
-#         self.dataset_type = None
         self.dataset_save_path = config.location_data["data_save_path"]
         self.dataset_type = config.dataset_type
         self.action_types = None
         self.raw_scenes = None
-        self.ignore = None
+        self.ignore = []
         self.folder_names = None
 
 
@@ -116,7 +115,7 @@ class SceneGraphDataset(BaseDataset):
     #action types dict
     # labels' dict
     # should be able to be converted into graph dataset or sequenced graph dataset.
-    def __init__(self, config = None, scene_graphs= None, action_types= None, label_data= None,meta_data = None):
+    def __init__(self, config = None, scene_graphs= {}, action_types= {}, label_data= {},meta_data = {}):
         if config != None:
             super(SceneGraphDataset, self).__init__(config)
             self.dataset_type = 'scenegraph'
