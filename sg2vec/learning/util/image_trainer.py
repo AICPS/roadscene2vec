@@ -16,7 +16,7 @@ from sg2vec.learning.model.cnn import CNN_Classifier
 from sklearn.utils.class_weight import compute_class_weight
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-from sklearn.utils import resample
+from sklearn.utils import resample, shuffle
 import pickle as pkl
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sg2vec.learning.util.metrics import *
@@ -52,20 +52,9 @@ class Image_Trainer(Trainer):
             raise ValueError('split_dataset(): task type error') 
         
 
-    '''Returns lists of tuples train and test each containing (data, label, category). This code assumes that all sequences are the same length.'''
-    def build_real_image_dataset(self):
-        image_dataset = RawImageDataset()
-        image_dataset.dataset_save_path = self.config.location_data["input_path"]
-        image_dataset = image_dataset.load()
-        self.frame_limit = image_dataset.frame_limit
-        self.color_channels = image_dataset.color_channels
-        self.im_width = image_dataset.im_width
-        self.im_height = image_dataset.im_height
-              
+    def prep_dataset(self, image_dataset):
         class_0 = []
         class_1 = []
-        class_0_clip_name = []
-        class_1_clip_name = []
         
         print("Loading Image Dataset")
         for seq in tqdm(image_dataset.labels): # for each seq (num total seq,frame,chan,h,w)
@@ -82,18 +71,39 @@ class Image_Trainer(Trainer):
         y_0 = [0]*len(class_0)  
         y_1 = [1]*len(class_1)
         min_number = min(len(class_0), len(class_1))
+        return class_0, class_1, y_0, y_1, min_number
         
-        if self.config.training_configuration['downsample']:
-            modified_class_0, modified_y_0 = resample(class_0, y_0, n_samples=min_number)
-        else:
-            modified_class_0, modified_y_0 = class_0, y_0
-        train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=self.config.training_configuration['split_ratio'], shuffle=True, stratify=modified_y_0+y_1, random_state=self.config.seed)
-        if self.config.location_data["transfer_path"] != None:
-            test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
-            image_sequence = class_1+class_0
-            return image_sequence, test
 
-        return train, test
+    '''Returns lists of tuples train and test each containing (data, label, category). This code assumes that all sequences are the same length.'''
+    def build_real_image_dataset(self):
+        image_dataset = RawImageDataset()
+        image_dataset.dataset_save_path = self.config.location_data["input_path"]
+        image_dataset = image_dataset.load()
+        self.frame_limit = image_dataset.frame_limit
+        self.color_channels = image_dataset.color_channels
+        self.im_width = image_dataset.im_width
+        self.im_height = image_dataset.im_height
+        class_0, class_1, y_0, y_1, min_number = self.prep_dataset(image_dataset)
+        
+        if self.config.training_configuration['downsample']: #TODO: fix this code. this only works if class 0 is always the majority class. 
+            class_0, y_0 = resample(class_0, y_0, n_samples=min_number)
+        
+        if self.config.location_data["transfer_path"] != None:
+            test_dataset = RawImageDataset()
+            test_dataset.dataset_save_path = self.config.location_data["transfer_path"]
+            test_dataset = test_dataset.load()
+            test_class_0, test_class_1, _, _, _ = self.prep_dataset(test_dataset)
+            train_dataset = shuffle(class_0 + class_1) #training set will consist of the full training dataset
+            test_dataset = shuffle(test_class_0 + test_class_1) #testing set will consist of the full transfer dataset
+            return train_dataset, test_dataset
+        else:
+            train, test, _, _ = train_test_split(class_0+class_1, 
+                                                            y_0+y_1, 
+                                                            test_size=self.config.training_configuration['split_ratio'], 
+                                                            shuffle=True, 
+                                                            stratify=y_0+y_1, 
+                                                            random_state=self.config.seed)
+            return train, test
 
 
     def train(self):
