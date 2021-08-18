@@ -230,8 +230,7 @@ class BEV():
         plt.show()
 
 if __name__ == '__main__':
-    path = r'Z:\louisccc\av\honda_data\filtered_clips\lanechange\5569_201710031645_lanechange\raw_images\14484.jpg'
-    path = '/home/louisccc/NAS/louisccc/av/honda_data/filtered_clips/lanechange/5569_201710031645_lanechange/raw_images/14484.jpg'
     path = '/home/louisccc/NAS/louisccc/av/honda_data/filtered_clips/lanechange/6057_201702271632_lanechange/raw_images/33322.jpg'
+    #TODO: replace path with command line arg instead to enable user to input their own path.
     bev = BEV(path, mode='calibrate')
     bev.calibrate()

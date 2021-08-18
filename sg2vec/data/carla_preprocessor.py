@@ -2,24 +2,13 @@ import sys, os
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 from sg2vec.data.preprocessor import Preprocessor as prepproc
-import yaml
 import sg2vec.data.dataset as ds
 from abc import ABC
 from pathlib import Path
 from tqdm import tqdm
-import torch
-# import FileNotFoundError, ValueError #is this import needed?
-import pickle as pkl
 import ast
 import json
 from glob import glob
-import cv2
-
-from os import listdir
-from os.path import isfile, join
-from torch_geometric.data import Data, DataLoader, DataListLoader
-
-
 
 
 """CarlaPreprocessor takes in config and returns GroundTruthDataset object."""

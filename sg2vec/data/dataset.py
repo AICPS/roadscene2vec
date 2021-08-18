@@ -5,24 +5,7 @@ import sys, os
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 from abc import ABC
-# from pathlib import Path
-# from tqdm import tqdm
-# import torch
-# import FileNotFoundError, ValueError #is this import needed?
 import pickle as pkl
-# import ast
-# import json
-# from glob import glob
-# import cv2
-
-# from os import listdir
-# from os.path import isfile, join
-# import pdb
-
-import pathlib
-import platform
-
-#sg2vec/data/dataset.py
 
 '''
 Abstract class defining dataset properties and functions
@@ -40,7 +23,6 @@ The resulting RawImageDataset will be stored in the following location:
 
 The resulting SceneGraphDataset will be stored in the following location:
 # dataset_path / <sg_dataset_path>.pkl
-
 '''
 class BaseDataset(ABC):
     def __init__(self, config):
@@ -74,13 +56,10 @@ class GroundTruthDataset(BaseDataset):
     # REQ: contains ground truth information about objects in the scene
     def __init__(self, config):
         super(GroundTruthDataset, self).__init__(config)
-        
-        
         #indexes for these three below are seq numbers
         self.meta = {}
         self.action_types = {}
         self.labels = {} 
-        
         self.raw_scenes = {} #this is dict within dict: raw_scenes[sequence_number][frame_number]
 
 

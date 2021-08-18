@@ -152,14 +152,8 @@ class RelationExtractor:
 
     def extract_relations_car_car(self, actor1, actor2):
         relation_list = []
-#         if (actor1.name == "car_4" or actor2.name == "car_4"):
-#             import pdb; pdb.set_trace()
-        # consider the proximity relations with neighboring lanes.
-
         if self.conf.relation_extraction_settings["extract_all_car_car_relations"] == True:
-#             import pdb; pdb.set_trace()
             if self.euclidean_distance(actor1, actor2) <= self.conf.relation_extraction_settings["CAR_PROXIMITY_THRESH_NEAR"]:
-
                 # One of these relations get overwritten in the visualizer for some reason...
                 if self.conf.relation_extraction_settings["extract_distance_relations"] == True:
                     relation_list += self.create_proximity_relations(actor1, actor2)
@@ -169,7 +163,6 @@ class RelationExtractor:
                     relation_list += self.extract_directional_relation(actor2, actor1)
         else:
             if actor1.name.startswith("ego") or actor2.name.startswith("ego"):
-#                 import pdb; pdb.set_trace()
                 if self.euclidean_distance(actor1, actor2) <= self.conf.relation_extraction_settings["CAR_PROXIMITY_THRESH_NEAR"]:
                     if self.conf.relation_extraction_settings["extract_distance_relations"] == True:
                         relation_list += self.create_proximity_relations(actor1, actor2)
@@ -181,9 +174,6 @@ class RelationExtractor:
             
     def extract_relations_car_lane(self, actor1, actor2):
         relation_list = []
-        # if(self.in_lane(actor1,actor2)):
-        #     relation_list.append([actor1, Relations.isIn, actor2])
-            
         return relation_list 
         
     def extract_relations_car_light(self, actor1, actor2):
@@ -221,9 +211,6 @@ class RelationExtractor:
         
     def extract_relations_moto_lane(self, actor1, actor2):
         relation_list = []
-        # if(self.in_lane(actor1,actor2)):
-        #     relation_list.append([actor1, Relations.isIn, actor2])
-        #     # relation_list.append([actor2, Relations.isIn, actor1])
         return relation_list 
         
     def extract_relations_moto_light(self, actor1, actor2):
@@ -237,38 +224,23 @@ class RelationExtractor:
 
     def extract_relations_bicycle_bicycle(self, actor1, actor2):
         relation_list = []
-        # if(self.euclidean_distance(actor1, actor2) < SELF.CONF["relation_extraction_settings"]["BICYCLE_PROXIMITY_THRESH"]):
-        #     relation_list.append([actor1, Relations.near, actor2])
-        #     relation_list.append([actor2, Relations.near, actor1])
-        #     #relation_list.append(self.extract_directional_relation(actor1, actor2))
-        #     #relation_list.append(self.extract_directional_relation(actor2, actor1))
+
         return relation_list
         
     def extract_relations_bicycle_ped(self, actor1, actor2):
         relation_list = []
-        # if(self.euclidean_distance(actor1, actor2) < SELF.CONF["relation_extraction_settings"]["BICYCLE_PROXIMITY_THRESH"]):
-        #     relation_list.append([actor1, Relations.near, actor2])
-        #     relation_list.append([actor2, Relations.near, actor1])
-        #     #relation_list.append(self.extract_directional_relation(actor1, actor2))
-        #     #relation_list.append(self.extract_directional_relation(actor2, actor1))
         return relation_list
         
     def extract_relations_bicycle_lane(self, actor1, actor2):
         relation_list = []
-        # if(self.in_lane(actor1,actor2)):
-        #     relation_list.append([actor1, Relations.isIn, actor2])
         return relation_list 
         
     def extract_relations_bicycle_light(self, actor1, actor2):
         relation_list = []
-        #relation_list.append(self.extract_directional_relation(actor1, actor2))
-        #relation_list.append(self.extract_directional_relation(actor2, actor1))
         return relation_list
         
     def extract_relations_bicycle_sign(self, actor1, actor2):
         relation_list = []
-        #relation_list.append(self.extract_directional_relation(actor1, actor2))
-        #relation_list.append(self.extract_directional_relation(actor2, actor1))
         return relation_list
         
     def extract_relations_ped_ped(self, actor1, actor2):
@@ -276,30 +248,19 @@ class RelationExtractor:
         if(self.euclidean_distance(actor1, actor2) < self.conf.relation_extraction_settings["PED_PROXIMITY_THRESH"]):
             relation_list.append([actor1, Relations.near, actor2])
             relation_list.append([actor2, Relations.near, actor1])
-            #relation_list.append(self.extract_directional_relation(actor1, actor2))
-            #relation_list.append(self.extract_directional_relation(actor2, actor1))
         return relation_list
            
     def extract_relations_ped_lane(self, actor1, actor2):
         relation_list = []
-        # if(self.in_lane(actor1,actor2)):
-        #     relation_list.append([actor1, Relations.isIn, actor2])
         return relation_list 
         
     def extract_relations_ped_light(self, actor1, actor2):
         relation_list = []
-        #proximity relation could indicate ped waiting for crosswalk at a light
-        # if(self.euclidean_distance(actor1, actor2) < self.conf["relation_extraction_settings"]["PED_PROXIMITY_THRESH"]):
-        #     relation_list.append([actor1, Relations.near, actor2])
-        #     relation_list.append([actor2, Relations.near, actor1])
-            #relation_list.append(self.extract_directional_relation(actor1, actor2))
-            #relation_list.append(self.extract_directional_relation(actor2, actor1))
+
         return relation_list
         
     def extract_relations_ped_sign(self, actor1, actor2):
         relation_list = []
-        # relation_list.append(self.extract_directional_relation(actor1, actor2))
-        # relation_list.append(self.extract_directional_relation(actor2, actor1))
         return relation_list
         
     def extract_relations_lane_lane(self, actor1, actor2):

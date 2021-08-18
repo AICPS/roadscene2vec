@@ -3,8 +3,6 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), "con
 from argparse import ArgumentParser
 import yaml
 from pathlib import Path
-import pickle 
-
 
 class configuration:
     def __init__(self, args, from_function = False):

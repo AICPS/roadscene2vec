@@ -15,7 +15,6 @@ def train_Trainer(learning_config):
 
     #wandb setup 
     wandb_arg= wandb.init(project=learning_config.wandb_configuration['project'], entity=learning_config.wandb_configuration['entity'])
-    ######
     outputs = []
     labels = []
     metrics = []

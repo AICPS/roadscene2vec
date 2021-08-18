@@ -16,10 +16,7 @@ class SceneGraph:
     #graph can be initialized with a framedict containing raw Carla data to load all objects at once
     def __init__(self, relation_extractor, framedict= None, framenum=None, bounding_boxes = None, bev = None, coco_class_names=None, platform='carla'):
         #configure relation extraction settings
-        self.relation_extractor = relation_extractor
-        
-#         pdb.set_trace()
-        
+        self.relation_extractor = relation_extractor        
         self.platform = platform
         
         if self.platform == "carla":
@@ -47,7 +44,6 @@ class SceneGraph:
             self.road_node = ObjectNode('Root Road', {}, ActorType.ROAD)
             self.add_node(self.road_node)   # adding the road as the root node
     
-            # set ego location to middle-bottom of image.
             # set ego location to middle-bottom of image.
             self.ego_location = bev.get_projected_point(
                                     bev.params['width']/2, 
@@ -201,10 +197,7 @@ class SceneGraph:
         self.ego_sin_term = math.sin(self.ego_yaw)
         self.relation_extractor.extract_relative_lanes(self)
 
-#         self.relation_extractor = RelationExtractor(self.egoNode) #see line 99
         for key, attrs in framedict.items():   
-            # if key == "lane":
-            #     self.add_lane_dict(attrs)get_euclidean_distance
             if key == "sign":
                 self.add_sign_dict(attrs)
             elif key == "actors":

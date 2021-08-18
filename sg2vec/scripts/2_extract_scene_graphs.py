@@ -27,7 +27,3 @@ def extract_scene_graphs():
     
 if __name__ == "__main__":
     extract_scene_graphs()
-    
-    
-#     from torch_geometric.data import Data, DataLoader, DataListLoader
-#5569

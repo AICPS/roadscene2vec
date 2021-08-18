@@ -5,16 +5,13 @@ from sg2vec.data.preprocessor import Preprocessor as prepproc
 from sg2vec.data import dataset as ds
 from pathlib import Path
 from tqdm import tqdm
-from glob import glob
 import cv2
-
 from os import listdir
 from os.path import isfile, join
 
 
 """RealPreprocessor takes in config and returns RawImageDataset object."""
 class RealPreprocessor(prepproc):
-    #TODO: RealPreprocessor preprocessor 
     def __init__(self,config):
         super(RealPreprocessor, self).__init__(config) 
         self.dataset = ds.RawImageDataset(self.conf)
