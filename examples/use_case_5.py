@@ -4,10 +4,10 @@ import sg2vec
 import sg2vec.data.real_preprocessor as ip
 from sg2vec.util.config_parser import configuration
 import sg2vec.scene_graph.extraction.image_extractor as RealEx
-from sg2vec.learning.util.trainer import Scenegraph_Trainer
+from sg2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
 from sg2vec.learning.util.metrics import *
 from sg2vec.data.dataset import SceneGraphDataset
-from sg2vec.learning.util.trainer import Scenegraph_Trainer
+#from sg2vec.learning.util.trainer import Scenegraph_Trainer
 # from sg2vec.scene_graph.relation_extractor import Relations  #use case will break when you remove relations from relation_extractor
 from sg2vec.scene_graph import relation_extractor   #use case will break when you remove relations from relation_extractor
 
@@ -25,6 +25,7 @@ matplotlib.use("Agg")
 import wandb
 import torch.nn as nn
 
+from networkx.drawing import nx_pydot
 
 sys.modules['util'] = sg2vec.util
 
@@ -46,12 +47,11 @@ def add_relation(g, src, relation, dst):
     g.add_edge(src, dst, object=relation, label=relation)
 
 def visualize_graph(g, to_filename):
-    #import pdb;pdb.set_trace()
-    A = to_agraph(g)
-    A.layout('dot')
-    A.draw(to_filename)
+    A = nx_pydot.to_pydot(g)
+    A.write_png(to_filename)
 
-def parse_attn_weights(node_attns, sequences, dest_dir, visualize):
+
+def parse_attn_weights(node_attns, sequences, dest_dir, visualize, relations):
 
     original_batch = node_attns['original_batch']
     pool_perm = node_attns['pool_perm']
@@ -91,9 +91,8 @@ def parse_attn_weights(node_attns, sequences, dest_dir, visualize):
                 dst_idx = scenegraph_edge_idx[1][edge_idx]
                 src_node_name = reversed_node_order[src_idx].name
                 dst_node_name = reversed_node_order[dst_idx].name
-                relation = scenegraph_edge_attr[edge_idx]
+                relation = relations[scenegraph_edge_attr[edge_idx]]
 
-                #import pdb; pdb.set_trace()
                 add_node(reversed_g, src_idx, src_node_name)
                 add_node(reversed_g, dst_idx, dst_node_name)
                 add_relation(reversed_g, src_idx, relation, dst_idx)
@@ -122,8 +121,6 @@ def parse_attn_weights(node_attns, sequences, dest_dir, visualize):
             frame_num = sequences[idx]['frame_number']
             folder_path = dest_dir / folder_name
             folder_path.mkdir(exist_ok=True)
-#             if idx == 9:
-#                 import pdb; pdb.set_trace()
             visualize_graph(reversed_g, str(folder_path / (str(frame_num) + '.png')))
             # visualize_graph(reversed_g, "./tmp.png")
     return node_attns_list
@@ -182,20 +179,18 @@ def inspect_trainer(training_config):
     node_attns_train_proc = []
     count = 0
     for i in tqdm(range(len(trainer.training_data))):
-#         if count == 8:
-#             import pdb; pdb.set_trace()
-        node_attns_train_proc += parse_attn_weights(node_attns_train[i], trainer.training_data[i]['sequence'], dest_dir, training_config.use_case_5_data["vizualize"])
+        node_attns_train_proc += parse_attn_weights(node_attns_train[i], trainer.training_data[i]['sequence'], dest_dir, training_config.use_case_5_data["vizualize"], training_config.use_case_5_data["RELATION_NAMES"])
         count += 1
     node_attns_test_proc = []
     for i in tqdm(range(len(trainer.testing_data))):
-        node_attns_test_proc += parse_attn_weights(node_attns_test[i], trainer.testing_data[i]['sequence'], dest_dir, training_config.use_case_5_data["vizualize"])
+        node_attns_test_proc += parse_attn_weights(node_attns_test[i], trainer.testing_data[i]['sequence'], dest_dir, training_config.use_case_5_data["vizualize"], training_config.use_case_5_data["RELATION_NAMES"])
     
     for output, label, folder_name, attns, node_attns in zip(outputs_train, labels_train, folder_names_train, attns_train, node_attns_train_proc):
         inspecting_result_df = inspecting_result_df.append(
-            {"safe_level":output[0],
-             "risk_level":output[1],
+            {"safe_level":output[0].cpu(),
+             "risk_level":output[1].cpu(),
              "prediction": 1 if output[1] > output[0] else 0,
-             "label":label,
+             "label":label.cpu(),
              "folder_name":folder_name,
              "attn_weights":{idx:value for idx, value in enumerate(attns)},
              "node_attns_score": node_attns}, ignore_index=True
@@ -203,10 +198,10 @@ def inspect_trainer(training_config):
     
     for output, label, folder_name, attns, node_attns in zip(outputs_test, labels_test, folder_names_test, attns_test, node_attns_test_proc):
         inspecting_result_df = inspecting_result_df.append(
-            {"safe_level":output[0],
-             "risk_level":output[1],
+            {"safe_level":output[0].cpu(),
+             "risk_level":output[1].cpu(),
              "prediction": 1 if output[1] > output[0] else 0,
-             "label":label,
+             "label":label.cpu(),
              "folder_name":folder_name, 
              "attn_weights":{idx:value for idx, value in enumerate(attns)},
              "node_attns_score": node_attns}, ignore_index=True

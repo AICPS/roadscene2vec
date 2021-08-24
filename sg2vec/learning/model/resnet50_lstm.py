@@ -34,6 +34,10 @@ class ResNet50_LSTM_Classifier(nn.Module):
     def forward(self, x):
         TimeDistributed = lambda curr_layer, prev_layer : torch.stack([curr_layer(prev_layer[:,i]) for i in range(self.frames)], dim=1)
         resnet = TimeDistributed(self.resnet, x)
-        _,(lstm1,_) = self.lstm1(torch.squeeze(resnet))
+        if self.cfg.training_configuration["task_type"] == "collision_prediction": 
+          lstm1,_ = self.lstm1(torch.squeeze(resnet))
+          lstm1 = lstm1.reshape(lstm1.shape[0]*lstm1.shape[1],20)
+        elif self.cfg.training_configuration["task_type"] == "sequence_classification":
+          _,(lstm1,_) = self.lstm1(torch.squeeze(resnet))
         l1 = self.l1(lstm1)
         return l1.squeeze()

@@ -23,7 +23,10 @@ class CNN_Classifier(nn.Module):
         self.mp1 = nn.MaxPool3d(kernel_size=(1,2,2), stride=(1,2,2))
         self.mp2 = nn.MaxPool3d(kernel_size=(1,2,2))
         self.flat = nn.Flatten(start_dim=1)
-        self.flat_dim = 64*self.frames*self.get_flat_dim() # TODO: automate this number
+        if self.cfg.training_configuration['task_type'] == 'sequence_classification':
+          self.flat_dim = 64*self.frames*self.get_flat_dim() # TODO: automate this number
+        elif self.cfg.training_configuration['task_type'] == 'collision_prediction':
+         self.flat_dim = 64*1*self.get_flat_dim() #since evaluating frame by frame instead of as a whole sequence, we pass in 1
         self.l1 = nn.Linear(in_features=self.flat_dim, out_features=1000)
         self.l2 = nn.Linear(in_features=1000, out_features=2)
     
@@ -44,8 +47,11 @@ class CNN_Classifier(nn.Module):
 
     def forward(self, x):
         # format input for 3d cnn
-        assert len(x.shape) == 5
-        x = self.reshape(x)
+        if self.cfg.training_configuration['task_type'] == 'collision_prediction':
+          x = torch.cat([i for i in x])
+          x = x.unsqueeze(1) #(batch * frames, 1, channel, h, w), 1 frame per
+        assert len(x.shape) == 5 
+        x = self.reshape(x) 
         c1 = F.relu(self.c1(x))
         mp1 = self.mp1(c1)
         c2 = F.relu(self.c2(mp1))

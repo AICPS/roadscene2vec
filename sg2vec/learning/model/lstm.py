@@ -37,12 +37,20 @@ class LSTM_Classifier(nn.Module):
         # x = self.reshape(x)
         x = torch.reshape(x, (x.shape[0], x.shape[1], -1))
         if self.model_name == 'gru':
-            _,l1 = self.l1(x) # return only last sequence
+            if self.cfg.training_configuration["task_type"] == "collision_prediction":
+              l1,_ = self.l1(x) 
+              l1 = l1.reshape(l1.shape[0]*l1.shape[1],100)
+              l1 = l1.unsqueeze(1)
+            elif self.cfg.training_configuration["task_type"] == "sequence_classification":
+              _,l1 = self.l1(x) # return only last sequence
             l2 = self.l2(l1)
             return l2.squeeze()
         elif self.model_name == 'lstm':
             dropout = lambda curr_layer: self.dropout(curr_layer) if self.cfg.training_configuration['dropout'] != 0 else curr_layer
             l1,_ = self.l1(x)  # return all sequences
+            if self.cfg.training_configuration["task_type"] == "collision_prediction":
+              l1 = l1.reshape(l1.shape[0]*l1.shape[1],512)
+              l1 = l1.unsqueeze(1)
             _,(l2,_) = self.l2(l1) # return only last sequence
             l3 = self.l3(dropout(l2))
             l4 = self.l4(dropout(l3))

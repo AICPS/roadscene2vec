@@ -16,7 +16,7 @@ from sg2vec.learning.model.cnn import CNN_Classifier
 from sklearn.utils.class_weight import compute_class_weight
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-from sklearn.utils import resample, shuffle
+from sklearn.utils import resample
 import pickle as pkl
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sg2vec.learning.util.metrics import *
@@ -33,28 +33,48 @@ class Image_Trainer(Trainer):
         super(Image_Trainer, self).__init__(config, wandb_a)
 
     def split_dataset(self): #this is init_dataset from multimodal
-        if self.config.training_configuration['task_type'] == 'cnn_image_classification':
+        if (self.config.training_configuration['task_type'] in ['sequence_classification','collision_prediction']):
             self.training_data, self.testing_data = self.build_real_image_dataset()
             self.training_labels = np.array([i[1] for i in self.training_data])
             self.testing_labels = np.array([i[1] for i in self.testing_data])
+            self.total_train_labels = np.concatenate([np.full(len(i[0]), i[1]) for i in self.training_data]) # used to compute frame-level class weighting
+            self.total_test_labels  = np.concatenate([np.full(len(i[0]), i[1]) for i in self.testing_data])
             self.training_clip_name = np.array([i[2] for i in self.training_data])
             self.testing_clip_name = np.array([i[2] for i in self.testing_data])
             self.training_data = np.stack([i[0] for i in self.training_data], axis=0) #resulting shape is (sequence, image, channel, height, width)
             self.testing_data = np.stack([i[0] for i in self.testing_data], axis=0)
-            self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.training_labels), self.training_labels))
-            
-            if self.config.training_configuration["n_fold"] <= 1:
-                print("Number of Training Sequences Included: ", len(self.training_data))
-                print("Number of Testing Sequences Included: ", len(self.testing_data))
-                print("Num of Training Labels in Each Class: " + str(np.unique(self.training_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
-                print("Num of Testing Labels in Each Class: " + str(np.unique(self.testing_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights)) 
+            if self.config.training_configuration['task_type'] == "sequence_classification":
+              self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.training_labels), self.training_labels))
+              if self.config.training_configuration["n_fold"] <= 1:
+                  print("Number of Training Sequences Included: ", len(self.training_data))
+                  print("Number of Testing Sequences Included: ", len(self.testing_data))
+                  print("Num of Training Labels in Each Class: " + str(np.unique(self.training_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
+                  print("Num of Testing Labels in Each Class: " + str(np.unique(self.testing_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights)) 
+            elif self.config.training_configuration['task_type'] == "collision_prediction":
+                self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.total_train_labels), self.total_train_labels))
+                if self.config.training_configuration["n_fold"] <= 1:
+                    print("Number of Training Sequences Included: ", len(self.training_data))
+                    print("Number of Testing Sequences Included: ", len(self.testing_data))
+                    print("Number of Training Labels in Each Class: " + str(np.unique(self.total_train_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
+                    print("Number of Testing Labels in Each Class: " + str(np.unique(self.total_test_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
         else:
             raise ValueError('split_dataset(): task type error') 
         
 
-    def prep_dataset(self, image_dataset):
+    '''Returns lists of tuples train and test each containing (data, label, category). This code assumes that all sequences are the same length.'''
+    def build_real_image_dataset(self):
+        image_dataset = RawImageDataset()
+        image_dataset.dataset_save_path = self.config.location_data["input_path"]
+        image_dataset = image_dataset.load()
+        self.frame_limit = image_dataset.frame_limit
+        self.color_channels = image_dataset.color_channels
+        self.im_width = image_dataset.im_width
+        self.im_height = image_dataset.im_height
+              
         class_0 = []
         class_1 = []
+        class_0_clip_name = []
+        class_1_clip_name = []
         
         print("Loading Image Dataset")
         for seq in tqdm(image_dataset.labels): # for each seq (num total seq,frame,chan,h,w)
@@ -71,43 +91,21 @@ class Image_Trainer(Trainer):
         y_0 = [0]*len(class_0)  
         y_1 = [1]*len(class_1)
         min_number = min(len(class_0), len(class_1))
-        return class_0, class_1, y_0, y_1, min_number
         
-
-    '''Returns lists of tuples train and test each containing (data, label, category). This code assumes that all sequences are the same length.'''
-    def build_real_image_dataset(self):
-        image_dataset = RawImageDataset()
-        image_dataset.dataset_save_path = self.config.location_data["input_path"]
-        image_dataset = image_dataset.load()
-        self.frame_limit = image_dataset.frame_limit
-        self.color_channels = image_dataset.color_channels
-        self.im_width = image_dataset.im_width
-        self.im_height = image_dataset.im_height
-        class_0, class_1, y_0, y_1, min_number = self.prep_dataset(image_dataset)
-        
-        if self.config.training_configuration['downsample']: #TODO: fix this code. this only works if class 0 is always the majority class. 
-            class_0, y_0 = resample(class_0, y_0, n_samples=min_number)
-        
-        if self.config.location_data["transfer_path"] != None:
-            test_dataset = RawImageDataset()
-            test_dataset.dataset_save_path = self.config.location_data["transfer_path"]
-            test_dataset = test_dataset.load()
-            test_class_0, test_class_1, _, _, _ = self.prep_dataset(test_dataset)
-            train_dataset = shuffle(class_0 + class_1) #training set will consist of the full training dataset
-            test_dataset = shuffle(test_class_0 + test_class_1) #testing set will consist of the full transfer dataset
-            return train_dataset, test_dataset
+        if self.config.training_configuration['downsample']:
+            modified_class_0, modified_y_0 = resample(class_0, y_0, n_samples=min_number)
         else:
-            train, test, _, _ = train_test_split(class_0+class_1, 
-                                                            y_0+y_1, 
-                                                            test_size=self.config.training_configuration['split_ratio'], 
-                                                            shuffle=True, 
-                                                            stratify=y_0+y_1, 
-                                                            random_state=self.config.seed)
-            return train, test
+            modified_class_0, modified_y_0 = class_0, y_0
+        train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=self.config.training_configuration['split_ratio'], shuffle=True, stratify=modified_y_0+y_1, random_state=self.config.seed)
+        if self.config.location_data["transfer_path"] != None:
+            test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
+            image_sequence = class_1+class_0
+            return image_sequence, test
 
+        return train, test
 
     def train(self):
-        if self.config.training_configuration['task_type'] == 'cnn_image_classification':
+        if (self.config.training_configuration['task_type'] in ['sequence_classification','collision_prediction']):
             tqdm_bar = tqdm(range(self.config.training_configuration['epochs']))
             for epoch_idx in tqdm_bar: # iterate through epoch   
                 acc_loss_train = 0
@@ -116,9 +114,16 @@ class Image_Trainer(Trainer):
                 for i in range(0, len(self.training_data), self.config.training_configuration['batch_size']): # iterate through batches of the dataset
                     batch_index = i + self.config.training_configuration['batch_size'] if i + self.config.training_configuration['batch_size'] <= len(self.training_data) else len(self.training_data)
                     indices = permutation[i:batch_index]
-                    batch_x, batch_y = self.training_data[indices], self.training_labels[indices]
-                    batch_x, batch_y = self.toGPU(batch_x, torch.float32), self.toGPU(batch_y, torch.long)
+                    batch_x = self.training_data[indices]
+                    batch_x = self.toGPU(batch_x, torch.float32)
+                    if self.config.training_configuration['task_type']  == 'sequence_classification': 
+                      batch_y = self.training_labels[indices] #batch_x = (batch, frames, channel, h, w)
+                    elif self.config.training_configuration['task_type']  == 'collision_prediction':
+                      batch_y = np.concatenate([np.full(len(self.training_data[i]),self.training_labels[i]) for i in indices]) #batch_x consists of individual frames not sequences/groups of frames, batch_y extends labels of each sequence to all frames in the sequence
+                    batch_y = self.toGPU(batch_y, torch.long)
+                    
                     output = self.model.forward(batch_x).view(-1, 2)
+                    #import pdb; pdb.set_trace()
                     loss_train = self.loss_func(output, batch_y)
                     loss_train.backward()
                     acc_loss_train += loss_train.detach().cpu().item() * len(indices)
@@ -132,7 +137,7 @@ class Image_Trainer(Trainer):
                 if epoch_idx % self.config.training_configuration['test_step'] == 0:
                     self.eval_model(epoch_idx)                   
         else:
-            raise ValueError
+            raise ValueError('train(): task type error')
               
     def model_inference(self, X, y, clip_name):
         labels = torch.LongTensor().to(self.config.training_configuration['device'])
@@ -150,8 +155,18 @@ class Image_Trainer(Trainer):
     
                 for i in range(0, len(X), batch_size): # iterate through subsequences
                     batch_index = i + batch_size if i + batch_size <= len(X) else len(X)
-                    batch_x, batch_y, batch_clip_name = X[i:batch_index], y[i:batch_index], clip_name[i:batch_index]
-                    batch_x, batch_y = self.toGPU(batch_x, torch.float32), self.toGPU(batch_y, torch.long)
+                    
+                    batch_x = X[i:batch_index]
+                    batch_x = self.toGPU(batch_x, torch.float32)
+                    if self.config.training_configuration['task_type']  == 'sequence_classification': 
+                      batch_y = y[i:batch_index]  #batch_x = (batch, frames, channel, h, w)
+                    elif self.config.training_configuration['task_type']  == 'collision_prediction':
+                      batch_y = np.concatenate([np.full(len(X[k]),y[k]) for k in range(i,batch_index)]) #batch_x consists of individual frames not sequences/groups of frames, batch_y extends labels of each sequence to all frames in the sequence
+                      batch_y = self.toGPU(batch_y, torch.long)
+                    
+                    batch_clip_name = clip_name[i:batch_index]
+#                    batch_x, batch_y, batch_clip_name = X[i:batch_index], y[i:batch_index], clip_name[i:batch_index]
+#                    batch_x, batch_y = self.toGPU(batch_x, torch.float32), self.toGPU(batch_y, torch.long)
                     #start = torch.cuda.Event(enable_timing=True)
                     #end =  torch.cuda.Event(enable_timing=True)
                     #start.record()
@@ -216,12 +231,18 @@ class Image_Trainer(Trainer):
         '''
         n = len(clip_name)
         for i in range(n):
-
-            categories['outputs'] = torch.cat([categories['outputs'], torch.unsqueeze(outputs[i], dim=0)], dim=0)
-            categories['labels'] = torch.cat([categories['labels'], torch.unsqueeze(labels[i], dim=0)], dim=0)
-
+            if self.config.training_configuration['task_type']  == 'sequence_classification': 
+              categories['outputs'] = torch.cat([categories['outputs'], torch.unsqueeze(outputs[i], dim=0)], dim=0)
+              categories['labels'] = torch.cat([categories['labels'], torch.unsqueeze(labels[i], dim=0)], dim=0)
+            elif self.config.training_configuration['task_type']  == 'collision_prediction':
+              temps = [torch.unsqueeze(pred, dim=0) for pred in outputs[i*self.frame_limit: (i+1)*self.frame_limit]] #list of predictions for each frame
+              for temp in temps:
+                categories['outputs'] = torch.cat([categories['outputs'], temp], dim=0) #cat each prediction individually
+              temps = [torch.unsqueeze(pred, dim=0) for pred in labels[i*self.frame_limit: (i+1)*self.frame_limit]] #list of labels for each frame
+              for temp in temps:
+                categories['labels'] = torch.cat([categories['labels'], temp], dim=0) #cat each label individually
+        del temps   
         # reshape outputs
-
         categories['outputs'] = categories['outputs'].reshape(-1, 2)
     
     def eval_model(self, current_epoch=None):

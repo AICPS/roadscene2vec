@@ -1,28 +1,30 @@
 ---
 use_case_5_data:
     vizualize: True
-    visualize_save_path: 'D:\research\av_data\viz'
+    visualize_save_path: '/home/harsimrat/av_data/viz5'
     iterations: 1
-    inspect_csv_store_path: 'inspect_image.csv'
+    inspect_csv_store_path: '/home/harsimrat/av_data/inspect_image_4.csv'
+    RELATION_NAMES: ['isIn', 'inDFrontOf', 'inSFrontOf', 'atDRearOf', 'atSRearOf', 'toLeftOf', 'toRightOf', 'near_coll', 'super_near' , 'very_near', 'near' ,'visible']
 location_data:
-    input_path: 'D:\research\av_data\20_frame_all_lane_change_sg.pkl'
+    input_path: '/home/harsimrat/av_data/entire_lanechange_seq_new_imp_sg.pkl'
     #TODO: revise this configuration file. copy it from 3_train_graph_learning.py argparser config
     #scenegraph_dataset_object_path: 'C:/av_data/preprocessed_dataset.pkl'
     transfer_path: Null #Path to the transfer file.
 model_configuration:
   model: 'mrgcn'
   num_layers: 3
-  load_model: True
+  load_model: True 
+  num_relations: 12 #num of types of relations extracted, needed only for graph based models 
 training_configuration:
   task_type: 'collision_prediction'
   scenegraph_dataset_type: "real" #carla or real
   n_fold: 1 # 2
-  num_of_classes: 8 #num of actors
+  num_of_classes: 9 #8 #num of actors
   learning_rate: 0.0001 #0.00005 
   epochs: 1
   cache_path: '../script/image_dataset.pkl'
   transfer_path: ''
-  model_load_path: 'pretrained_models\20_frame_lanechange_collision_prediction_20_epochs.pt'
+  model_load_path: '/home/harsimrat/av_data/whole_lane_change_ego_car_rels_only.pt' #need to move model to examples folder
   model_save_path: './model/model_best_val_loss_.vec.pt'
   split_ratio: 0.3
   downsample: False

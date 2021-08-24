@@ -15,7 +15,6 @@ from sg2vec.learning.util.trainer import Trainer
 
 from sg2vec.data.dataset import SceneGraphDataset
 from sg2vec.data.dataset import RawImageDataset
-from sg2vec.scene_graph.relation_extractor import Relations
 from argparse import ArgumentParser
 from tqdm import tqdm
 
@@ -79,7 +78,7 @@ class Scenegraph_Trainer(Trainer):
                 data_to_append = {"sequence":process_carla_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 self.transfer_data.append(data_to_append)
                     
-        elif self.config.training_configuration["scenegraph_dataset_type"] == "real":
+        elif self.config.training_configuration["scenegraph_dataset_type"] == "image":
             for ind, seq in enumerate(sorted_seq): 
                 data_to_append = {"sequence":process_real_image_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 self.transfer_data.append(data_to_append)
@@ -192,7 +191,8 @@ class Scenegraph_Trainer(Trainer):
                                                                         #maybe instead create a massive dict with the form {seq:scene_graph_dataset.scene_graphs[seq], scene_graph_dataset.labels[seq]...}
                 elif self.scene_graph_dataset.labels[seq] == 1:
                     class_1.append(data_to_append)
-        #else
+        elif self.config.training_configuration["scenegraph_dataset_type"] != None:
+            raise ValueError('scenegraph_dataset_type not recognized') 
         
             
         y_0 = [0]*len(class_0)  
@@ -320,6 +320,7 @@ class Scenegraph_Trainer(Trainer):
                         #end =  torch.cuda.Event(enable_timing=True)
                         #start.record()
                         output, attns = self.model.forward(sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)
+                        import pdb; pdb.set_trace()
                         #end.record()
                         #torch.cuda.synchronize()
                         inference_time += 0#start.elapsed_time(end)

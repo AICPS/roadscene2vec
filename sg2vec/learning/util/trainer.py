@@ -15,7 +15,7 @@ import math
 
 from sg2vec.data.dataset import SceneGraphDataset
 from sg2vec.data.dataset import RawImageDataset
-from sg2vec.scene_graph.relation_extractor import Relations
+#from sg2vec.scene_graph.relation_extractor import Relations
 from argparse import ArgumentParser
 from tqdm import tqdm
 
@@ -86,8 +86,10 @@ class Trainer:
 
     def build_model(self): #this involves changing mrcgn and mrgin files to be compatible with new config tht we pass in
         # BD mode
-        self.config.num_features = len(self.feature_list)
-        self.config.num_relations = max([r.value for r in Relations])+1
+        #self.config.num_features = len(self.feature_list)
+        #self.config.num_relations = max([r.value for r in Relations])+1
+        self.config.num_features = self.config.training_configuration['num_of_classes']
+        self.config.num_relations = self.config.model_configuration['num_relations']
         if self.config.model_configuration["model"] == "mrgcn":
             self.model = MRGCN(self.config).to(self.config.training_configuration["device"])
         elif self.config.model_configuration["model"]  == "mrgin":

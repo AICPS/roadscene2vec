@@ -10,12 +10,13 @@ from util import config_parser
 from scene_graph.scene_graph import SceneGraph
 # from scene_graph.extraction.carla_extractor import CarlaExtractor # going to ignore for now...
 from scene_graph.extraction.image_extractor import RealExtractor
-
+#from data.real_preprocessor import RealPreprocessor
+from data.dataset import RawImageDataset
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
-
-TEMP_PATH = '../config/scene_graph_config_real.yaml'
+from pathlib import Path
+from tqdm import tqdm
 
 from timeit import default_timer as timer
 def elapsed_time(func, *args, **kwargs):
@@ -29,11 +30,13 @@ def elapsed_time(func, *args, **kwargs):
 def get_parser(yml_path):
   return config_parser.configuration(yml_path)
 
-def get_extractor(fname=TEMP_PATH):
+def get_extractor(fname):
   return RealExtractor(get_parser(fname))
 
 def get_data(extractor):
-  return extractor.data_set.data
+  temp = RawImageDataset()
+  temp.dataset_save_path = extractor.input_path
+  return temp.load().data
 
 def get_bev(extractor):
   return extractor.bev#.warpPerspective(frame)
@@ -84,10 +87,11 @@ def draw_scenegraph_pydot(sg):
   return Image.open(BytesIO(img))
 
 def draw(extractor, frame, bbox, bev, sg, save_path=None):
-  
-  img = frame
+
+#  frame = frame.transpose(1,2,0) #must do this for cv functionality due to change in real preprocessor
+#  img = frame
   plt.subplot(2, 3, 1)
-  plt.imshow(cv2_color(img))
+  plt.imshow(cv2_color(frame))
   plt.title("Raw Image")
   plt.axis('off')
   
@@ -97,13 +101,14 @@ def draw(extractor, frame, bbox, bev, sg, save_path=None):
   plt.title("Object Detection Image")
   plt.axis('off')
   
+  #import pdb;pdb.set_trace()
   bev_img = draw_bev(bev, frame)
   plt.subplot(2, 3, 3)
   plt.imshow(cv2_color(bev_img))
   plt.title("Bird's Eye Image")
   plt.axis('off')
 
-  sg_img = draw_scenegraph_pydot(sg).convert('RGB')
+  sg_img = draw_scenegraph_pydot(sg)
   plt.subplot(2, 1, 2)
   plt.imshow(sg_img)
   plt.title("SceneGraph Image")
@@ -118,18 +123,22 @@ def draw(extractor, frame, bbox, bev, sg, save_path=None):
 
 
 if __name__ == '__main__':
-  extractor = elapsed_time(get_extractor)
-  data = get_data(extractor)
-  gen_data = yield_data(data)
+  #TODO add command line argument support
+  YAML_PATH_DATA_DIR = '/home/louisccc/NAS/louisccc/av/honda_data/filtered_clips/lanechange/'
+  YAML_PATH_EX = '/home/harsimrat/sg2vec/sg2vec/config/scene_graph_config_real.yaml'
 
-  while True:
-    try:
-      frame = next(gen_data)
-    except:
-      print('- finished'); break;
-    else:
-      bbox = get_bbox(extractor, frame)
-      bev = get_bev(extractor)
-      sg = get_scenegraph(extractor, bbox, bev)
-
-      draw(extractor, frame, bbox, bev, sg, save_path='output.png')
+  extractor = get_extractor(YAML_PATH_EX)
+  dataset_dir = YAML_PATH_DATA_DIR
+  if not os.path.exists(dataset_dir):
+      raise FileNotFoundError(dataset_dir)
+  all_sequence_dirs = [x for x in Path(dataset_dir).iterdir() if x.is_dir()]
+  all_sequence_dirs = sorted(all_sequence_dirs, key=lambda x: int(x.stem.split('_')[0]))  #can't use this lamda to sort in the future
+  for path in tqdm(all_sequence_dirs):
+      sequence = extractor.load_images(path)
+      for frame in sorted(sequence.keys()):
+          bbox = get_bbox(extractor, sequence[frame])
+          bev = get_bev(extractor)
+          sg = get_scenegraph(extractor, bbox, bev)
+    
+          draw(extractor, sequence[frame], bbox, bev, sg, save_path='output.png')
+  print('- finished')
