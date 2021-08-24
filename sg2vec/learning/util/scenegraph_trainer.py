@@ -320,7 +320,7 @@ class Scenegraph_Trainer(Trainer):
                         #end =  torch.cuda.Event(enable_timing=True)
                         #start.record()
                         output, attns = self.model.forward(sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)
-                        import pdb; pdb.set_trace()
+                        #import pdb; pdb.set_trace()
                         #end.record()
                         #torch.cuda.synchronize()
                         inference_time += 0#start.elapsed_time(end)

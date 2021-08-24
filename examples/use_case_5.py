@@ -1,16 +1,9 @@
 import sys, os
 sys.path.append(os.path.dirname(sys.path[0]))
 import sg2vec
-import sg2vec.data.real_preprocessor as ip
 from sg2vec.util.config_parser import configuration
-import sg2vec.scene_graph.extraction.image_extractor as RealEx
 from sg2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
 from sg2vec.learning.util.metrics import *
-from sg2vec.data.dataset import SceneGraphDataset
-#from sg2vec.learning.util.trainer import Scenegraph_Trainer
-# from sg2vec.scene_graph.relation_extractor import Relations  #use case will break when you remove relations from relation_extractor
-from sg2vec.scene_graph import relation_extractor   #use case will break when you remove relations from relation_extractor
-
 
 import numpy as np
 import networkx as nx
