@@ -3,10 +3,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
+import pdb
 
 class CNN_Classifier(nn.Module):
     '''
-    3D CNN+Linear binary classifier
+    2D/3D CNN+Linear binary classifier
     To call module provide the input_shape and cfg params
     input_shape should be a tensor -> (batch_size, frames, channels, height, width) 
     '''
@@ -16,17 +17,23 @@ class CNN_Classifier(nn.Module):
         self.batch_size, self.frames, self.channels, self.height, self.width = input_shape
         self.kernel_size = (1, 5, 5)
         self.conv_size = lambda i, k, p, s: int((i-k+2*p)/s + 1)
-        self.pool_size = lambda i, k, p, s, pool : conv_size(i, k, p, s) // pool + 1
-
-        self.c1 = nn.Conv3d(in_channels=self.channels, out_channels=32, kernel_size=self.kernel_size)
-        self.c2 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=self.kernel_size)
-        self.mp1 = nn.MaxPool3d(kernel_size=(1,2,2), stride=(1,2,2))
-        self.mp2 = nn.MaxPool3d(kernel_size=(1,2,2))
-        self.flat = nn.Flatten(start_dim=1)
-        if self.cfg.training_configuration['task_type'] == 'sequence_classification':
+        self.pool_size = lambda i, k, p, s, pool : conv_size(i, k, p, s) // pool + 1   
+        self.dropout = self.cfg.training_configuration['dropout']
+        self.task_type = self.cfg.training_configuration['task_type']
+        
+        if self.task_type == 'sequence_classification':
+          self.c1 = nn.Conv3d(in_channels=self.channels, out_channels=32, kernel_size=self.kernel_size)
+          self.c2 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=self.kernel_size)
+          self.mp1 = nn.MaxPool3d(kernel_size=(1,2,2), stride=(1,2,2))
+          self.mp2 = nn.MaxPool3d(kernel_size=(1,2,2))
           self.flat_dim = 64*self.frames*self.get_flat_dim() # TODO: automate this number
-        elif self.cfg.training_configuration['task_type'] == 'collision_prediction':
-         self.flat_dim = 64*1*self.get_flat_dim() #since evaluating frame by frame instead of as a whole sequence, we pass in 1
+
+        elif self.task_type == 'collision_prediction':
+          self.c1 = nn.Conv2d(in_channels=self.channels, out_channels=32, kernel_size=5, stride=1)
+          self.c2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, stride=1)
+          self.mp1 = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
+          self.mp2 = nn.MaxPool2d(kernel_size=(2,2))
+          self.flat_dim = 64*1*self.get_flat_dim() #since evaluating frame by frame instead of as a whole sequence, we pass in 1
         self.l1 = nn.Linear(in_features=self.flat_dim, out_features=1000)
         self.l2 = nn.Linear(in_features=1000, out_features=2)
     
@@ -46,17 +53,15 @@ class CNN_Classifier(nn.Module):
         return x.permute(0, 2, 1, 3, 4)
 
     def forward(self, x):
-        # format input for 3d cnn
-        if self.cfg.training_configuration['task_type'] == 'collision_prediction':
+        if self.task_type == 'collision_prediction':
           x = torch.cat([i for i in x])
-          x = x.unsqueeze(1) #(batch * frames, 1, channel, h, w), 1 frame per
-        assert len(x.shape) == 5 
-        x = self.reshape(x) 
-        c1 = F.relu(self.c1(x))
-        mp1 = self.mp1(c1)
-        c2 = F.relu(self.c2(mp1))
-        mp2 = self.mp2(c2)
-        flat1 = self.flat(mp2)
-        l1 = F.relu(self.l1(flat1))
-        l2 = self.l2(l1)
-        return l2.squeeze()
+        elif self.task_type == "sequence_classification":
+          x = self.reshape(x)
+        x = F.relu(self.c1(x))
+        x = self.mp1(x)
+        x = F.relu(self.c2(x))
+        x = self.mp2(x)
+        x = F.dropout(torch.flatten(x, start_dim=1), p=self.dropout, training=self.training)
+        x = F.dropout(F.relu(self.l1(x)), p=self.dropout, training=self.training)
+        x = torch.squeeze(self.l2(x))
+        return F.log_softmax(x, dim=-1)

@@ -70,11 +70,8 @@ class Image_Trainer(Trainer):
         self.color_channels = image_dataset.color_channels
         self.im_width = image_dataset.im_width
         self.im_height = image_dataset.im_height
-              
         class_0 = []
         class_1 = []
-        class_0_clip_name = []
-        class_1_clip_name = []
         
         print("Loading Image Dataset")
         for seq in tqdm(image_dataset.labels): # for each seq (num total seq,frame,chan,h,w)
@@ -96,7 +93,7 @@ class Image_Trainer(Trainer):
             modified_class_0, modified_y_0 = resample(class_0, y_0, n_samples=min_number)
         else:
             modified_class_0, modified_y_0 = class_0, y_0
-        train, test, train_y, test_y = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=self.config.training_configuration['split_ratio'], shuffle=True, stratify=modified_y_0+y_1, random_state=self.config.seed)
+        train, test, _, _ = train_test_split(modified_class_0+class_1, modified_y_0+y_1, test_size=self.config.training_configuration['split_ratio'], shuffle=True, stratify=modified_y_0+y_1, random_state=self.config.seed)
         if self.config.location_data["transfer_path"] != None:
             test, _ = pkl.load(open(self.config.location_data["transfer_path"], "rb"))
             image_sequence = class_1+class_0
@@ -123,7 +120,6 @@ class Image_Trainer(Trainer):
                     batch_y = self.toGPU(batch_y, torch.long)
                     
                     output = self.model.forward(batch_x).view(-1, 2)
-                    #import pdb; pdb.set_trace()
                     loss_train = self.loss_func(output, batch_y)
                     loss_train.backward()
                     acc_loss_train += loss_train.detach().cpu().item() * len(indices)
@@ -162,18 +158,10 @@ class Image_Trainer(Trainer):
                       batch_y = y[i:batch_index]  #batch_x = (batch, frames, channel, h, w)
                     elif self.config.training_configuration['task_type']  == 'collision_prediction':
                       batch_y = np.concatenate([np.full(len(X[k]),y[k]) for k in range(i,batch_index)]) #batch_x consists of individual frames not sequences/groups of frames, batch_y extends labels of each sequence to all frames in the sequence
-                      batch_y = self.toGPU(batch_y, torch.long)
-                    
+                    batch_y = self.toGPU(batch_y, torch.long)
                     batch_clip_name = clip_name[i:batch_index]
-#                    batch_x, batch_y, batch_clip_name = X[i:batch_index], y[i:batch_index], clip_name[i:batch_index]
-#                    batch_x, batch_y = self.toGPU(batch_x, torch.float32), self.toGPU(batch_y, torch.long)
-                    #start = torch.cuda.Event(enable_timing=True)
-                    #end =  torch.cuda.Event(enable_timing=True)
-                    #start.record()
+
                     output = self.model.forward(batch_x).view(-1, 2)
-                    #end.record()
-                    #torch.cuda.synchronize()
-                    inference_time += 0#start.elapsed_time(end)
                     loss_test = self.loss_func(output, batch_y)
                     acc_loss += loss_test.detach().cpu().item() * len(batch_y)
                     # store output, label statistics
@@ -241,7 +229,7 @@ class Image_Trainer(Trainer):
               temps = [torch.unsqueeze(pred, dim=0) for pred in labels[i*self.frame_limit: (i+1)*self.frame_limit]] #list of labels for each frame
               for temp in temps:
                 categories['labels'] = torch.cat([categories['labels'], temp], dim=0) #cat each label individually
-        del temps   
+              del temps   
         # reshape outputs
         categories['outputs'] = categories['outputs'].reshape(-1, 2)
     

@@ -22,7 +22,7 @@ def train_Trainer(learning_config):
     categories_train_list = []
     categories_test_list = []
 
-    if learning_config.training_configuration["task_type"] == 'cnn_image_classification':
+    if learning_config.training_configuration["dataset_type"] == "real":
         trainer = Image_Trainer(learning_config, wandb_arg)
         trainer.split_dataset()
         trainer.build_model()
@@ -32,7 +32,7 @@ def train_Trainer(learning_config):
         categories_test_list.append(categories_test)
         metrics.append(metric)
         
-    elif learning_config.training_configuration["task_type"] in ['sequence_classification','graph_classification','collision_prediction']:
+    elif learning_config.training_configuration["dataset_type"] == "scenegraph":
         trainer = Scenegraph_Trainer(learning_config, wandb_arg)
         trainer.split_dataset()
         trainer.build_model()
