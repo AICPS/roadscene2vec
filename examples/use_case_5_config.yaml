@@ -13,14 +13,14 @@ location_data:
 model_configuration:
   model: 'mrgcn'
   num_layers: 3
-  load_model: True 
-  num_relations: 12 #num of types of relations extracted, needed only for graph based models 
+  load_model: True
+  num_relations: 12 #num of types of relations extracted, needed only for graph based models
 training_configuration:
   task_type: 'collision_prediction'
   scenegraph_dataset_type: "real" #carla or real
   n_fold: 1 # 2
   num_of_classes: 9 #8 #num of actors
-  learning_rate: 0.0001 #0.00005 
+  learning_rate: 0.0001 #0.00005
   epochs: 1
   cache_path: '../script/image_dataset.pkl'
   transfer_path: ''
@@ -41,7 +41,7 @@ training_configuration:
   hidden_dim: 64
   layer_spec: null
   pooling_type: 'sagpool'
-  pooling_ratio: 0.5
+  pooling_ratio: 1.0
   readout_type: 'mean'
   temporal_type: 'lstm_attn'
   lstm_input_dim: 50
