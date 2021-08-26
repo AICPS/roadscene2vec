@@ -17,15 +17,9 @@ from sg2vec.learning.util.model_input_preprocessing import * #TODO: remove model
 from sg2vec.learning.util.metrics import * #TODO: remove star imports
 
 
-
-import sg2vec
-sys.modules['data'] = sg2vec.data
-
 class Scenegraph_Trainer(Trainer):
-    #optimize call. build_scenegraph_dataset was changed to self
     def __init__(self, config, wandb_a = None):
         super(Scenegraph_Trainer, self).__init__(config, wandb_a)
-
 
     def split_dataset(self): #this is init_dataset from multimodal
         if (self.config.training_configuration['task_type'] in ['sequence_classification','graph_classification','collision_prediction']):
@@ -501,6 +495,7 @@ class Scenegraph_Trainer(Trainer):
 
     
     # Averages metrics after the end of each cross validation fold
+    #TODO: migrate this functionality to metrics instead of having the same code in all the trainers.
     def update_sg_cross_valid_metrics(self, outputs_train, labels_train, outputs_test, labels_test, metrics):
         if self.fold == 1:
             self.results['outputs_train'] = outputs_train
