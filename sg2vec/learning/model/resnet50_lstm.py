@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
-
+import pdb
 
 class ResNet50_LSTM_Classifier(nn.Module):
     '''
@@ -30,14 +30,15 @@ class ResNet50_LSTM_Classifier(nn.Module):
         # self.lstm1 = nn.LSTM(input_size=512, hidden_size=20)
         self.lstm1 = nn.LSTM(input_size=2048, hidden_size=20, batch_first=True)
         self.l1 = nn.Linear(in_features=20, out_features=2)
+        self.TimeDistributed = lambda curr_layer, prev_layer : torch.stack([curr_layer(prev_layer[:,i]) for i in range(self.frames)], dim=1)
+
 
     def forward(self, x):
-        TimeDistributed = lambda curr_layer, prev_layer : torch.stack([curr_layer(prev_layer[:,i]) for i in range(self.frames)], dim=1)
-        resnet = TimeDistributed(self.resnet, x)
+        x = self.TimeDistributed(self.resnet, x)
         if self.cfg.training_configuration["task_type"] == "collision_prediction": 
-          lstm1,_ = self.lstm1(torch.squeeze(resnet))
-          lstm1 = lstm1.reshape(lstm1.shape[0]*lstm1.shape[1],20)
+          x,_ = self.lstm1(torch.flatten(x, start_dim=2))
+          x = x.reshape(x.shape[0]*x.shape[1],20) 
         elif self.cfg.training_configuration["task_type"] == "sequence_classification":
-          _,(lstm1,_) = self.lstm1(torch.squeeze(resnet))
-        l1 = self.l1(lstm1)
-        return l1.squeeze()
+          _,(x,_) = self.lstm1(torch.flatten(x, start_dim=2))
+        x = torch.flatten(self.l1(x), start_dim=1)
+        return F.log_softmax(x, dim=-1)
