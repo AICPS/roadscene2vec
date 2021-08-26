@@ -23,12 +23,13 @@ class ResNet50_Classifier(nn.Module):
 
     def forward(self, x):
         if self.cfg.training_configuration['task_type'] == 'sequence_classification':
-          x = torch.squeeze(self.TimeDistributed(self.resnet, x))
+          x = self.TimeDistributed(self.resnet, x)
           x = torch.flatten(x, start_dim=1) #flatten resnet outputs for a whole sequence into a single vector.
         if self.cfg.training_configuration['task_type'] == 'collision_prediction':
           x = torch.cat([i for i in x])     #process each input image separately with resnet. 
           x = torch.squeeze(self.resnet(x))
         x = F.dropout(x, p=self.dropout, training=self.training)
-        x = F.dropout(F.relu(self.l1(x)), p=self.dropout, training=self.training)
+        x = self.l1(x)
+        x = F.dropout(F.relu(x), p=self.dropout, training=self.training)
         x = self.l2(x)
         return F.log_softmax(x, dim=-1)
