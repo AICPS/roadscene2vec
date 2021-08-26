@@ -9,6 +9,9 @@ import pickle as pkl
 import yaml
 import data.dataset as ds
 from tqdm import tqdm
+import ast
+from glob import glob
+import json
 
 """CarlaExtractor initializes relational settings and creates a CarlaSceneGraphSequenceGenerator object to extract scene graphs using raw scene data."""
 class CarlaExtractor(ex):
@@ -74,7 +77,7 @@ class CarlaExtractor(ex):
                       for frame, frame_dict in framedict.items():
                           if str(frame) in image_frames: 
                               scenegraph = SceneGraph(self.relation_extractor, framedict = frame_dict, framenum = frame, platform = "carla")
-                              sg_extracted[sequence][int(frame)] = scenegraph
+                              sg_extracted[seq][int(frame)] = scenegraph
                               
                   except Exception as e:
                       import traceback

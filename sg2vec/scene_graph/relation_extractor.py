@@ -31,10 +31,11 @@ class RelationExtractor:
             elif actor.label.lower() == self.actors[actor_]:
                 return self.actors[actor_], actor_
             elif f"{self.actors[actor_].upper()}_NAMES" in self.conf.relation_extraction_settings:
-                if actor.label in self.conf.relation_extraction_settings[f"{self.actors[actor_].upper()}_NAMES"]:
-                    return self.actors[actor_], actor_
-                elif actor.label.lower() in self.conf.relation_extraction_settings[f"{self.actors[actor_].upper()}_NAMES"]:
-                    return self.actors[actor_], actor_
+              for actor_names in self.conf.relation_extraction_settings[f"{self.actors[actor_].upper()}_NAMES"]: #go through different names of actor type (ie Tesla for type car)
+                  if actor_names in actor.label:
+                      return self.actors[actor_], actor_
+                  elif actor_names in actor.label.lower():
+                      return self.actors[actor_], actor_
         raise NameError("Actor name not found for actor with name: " + actor.attr["name"])
 
     def get_config(self):

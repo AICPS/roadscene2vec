@@ -149,21 +149,26 @@ class SceneGraph:
             
 
     #parses actor dict and adds nodes to graph. this can be used for all actor types.
-    def add_actor_dict(self, actordict):
+    def add_actor_dict(self, key, actordict): #TODO test with signs and different actor types besides cars
         for actor_id, attr in actordict.items():
             # filter actors behind ego 
+            n = Node(None, None, attr['name'], None)   #using the actor key as the node name and the dict as its attributes.
+            n.label, n.value = self.relation_extractor.get_actor_type(n)   
+            n.attr = attr
             x1, y1 = math.cos(math.radians(self.egoNode.attr['rotation'][0])), math.sin(math.radians(self.egoNode.attr['rotation'][0]))
             x2, y2 = attr['location'][0] - self.egoNode.attr['location'][0], attr['location'][1] - self.egoNode.attr['location'][1]
             inner_product = x1*x2 + y1*y2
             length_product = math.sqrt(x1**2+y1**2) + math.sqrt(x2**2+y2**2)
             degree = math.degrees(math.acos(inner_product / length_product))
             
-            if (degree >=190 and degree <= 350):#TEST FOR CARLA #if degree <= 80 or (degree >=280 and degree <= 360):
+            if key == "sign":
+              import pdb; pdb.set_trace()
+            
+            if (degree <=190 or degree >= 350):#TEST FOR CARLA #if degree <= 80 or (degree >=280 and degree <= 360):
                 # if abs(self.egoNode.attr['lane_idx'] - attr['lane_idx']) <= 1 \
                 # or ("invading_lane" in self.egoNode.attr and (2*self.egoNode.attr['invading_lane'] - self.egoNode.attr['orig_lane_idx']) == attr['lane_idx']):
-                n = Node(None, attr, None, None)   #using the actor key as the node name and the dict as its attributes.
-                n.label, n.value = self.relation_extractor.get_actor_type(n)
-                n.name = n.label.lower() + ":" + actor_id
+                n.name = n.label.lower() + "_" + actor_id
+                
                 self.add_node(n)
                 self.relation_extractor.add_mapping_to_relative_lanes(self, n)
             
@@ -193,12 +198,8 @@ class SceneGraph:
 
 #         self.relation_extractor = RelationExtractor(self.egoNode) #see line 99
         for key, attrs in framedict.items():   
-            # if key == "lane":
-            #     self.add_lane_dict(attrs)get_euclidean_distance
-            if key == "sign":
-                self.add_sign_dict(attrs)
-            elif key == "actors":
-                self.add_actor_dict(attrs)
+            if key == 'actors' or key == 'sign':
+              self.add_actor_dict(key, attrs)
         self.relation_extractor.extract_semantic_relations(self)
         
 

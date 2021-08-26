@@ -11,13 +11,21 @@ class configuration:
         if not(from_function):
             ap = ArgumentParser(description='The parameters for use-case 2.')
             ap.add_argument('--yaml_path', type=str, default="./IP-NetList.yaml", help="The path of yaml config file.")
-            ap.add_argument('--model', type=str, help="model override.")
-            ap.add_argument('--input_path', type=str, help="input_path override.")
-            ap.add_argument('--task_type', type=str, help="task type override.")
+            ap.add_argument('--model', type=str, default = None, help="model override.")
+            ap.add_argument('--input_path', type=str, default = None, help="input_path override.")
+            ap.add_argument('--task_type', type=str, default = None, help="task type override.")
             args_parsed = ap.parse_args(args)
             for arg_name in vars(args_parsed):
                 self.__dict__[arg_name] = getattr(args_parsed, arg_name)
                 self.yaml_path = Path(self.yaml_path).resolve()
+            #handle command line overrides.
+            if self.model != None:
+                self.model_configuration['model'] = self.model
+            if self.input_path != None:
+                self.location_data['input_path'] = self.input_path
+            if self.task_type != None:
+                self.training_configuration['task_type'] = self.task_type
+                    
         
         if from_function:
             self.yaml_path = Path(args).resolve()
@@ -26,13 +34,7 @@ class configuration:
             for arg_name, arg_value in self.args.items():
                 self.__dict__[arg_name] = arg_value
 
-        #handle command line overrides.
-        if self.model != None:
-            self.model_configuration['model'] = self.model
-        if self.input_path != None:
-            self.location_data['input_path'] = self.input_path
-        if self.task_type != None:
-            self.training_configuration['task_type'] = self.task_type
+
         
     @staticmethod
     def parse_args(yaml_path):
