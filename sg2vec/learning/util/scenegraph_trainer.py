@@ -2,37 +2,21 @@ import sys, os, pdb
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 import torch
-import torch.optim as optim
-import torch.nn as nn
 import numpy as np
-import pandas as pd
-import random
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, precision_score, recall_score, roc_auc_score, roc_curve
-from sklearn import preprocessing
-from matplotlib import pyplot as plt
-import math
-from sg2vec.learning.util.trainer import Trainer
-
-from sg2vec.data.dataset import SceneGraphDataset
-from sg2vec.data.dataset import RawImageDataset
-from argparse import ArgumentParser
-from tqdm import tqdm
-
-from sg2vec.learning.model.mrgcn import MRGCN
-from sg2vec.learning.model.mrgin import MRGIN
-from torch_geometric.data import Data, DataLoader, DataListLoader
 from sklearn.utils.class_weight import compute_class_weight
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
-import pickle as pkl
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from sg2vec.learning.util.metrics import *
-
-from collections import Counter,defaultdict
 import wandb
 
-from sg2vec.learning.util.model_input_preprocessing import *
+from sg2vec.learning.util.trainer import Trainer
+from sg2vec.data.dataset import SceneGraphDataset
+from torch_geometric.data import Data, DataLoader
+from sg2vec.learning.util.model_input_preprocessing import * #TODO: remove model_input_preprocessing
+from sg2vec.learning.util.metrics import * #TODO: remove star imports
+
+
 
 import sg2vec
 sys.modules['data'] = sg2vec.data
@@ -156,18 +140,10 @@ class Scenegraph_Trainer(Trainer):
             transfer 
                 replaces original test set with another dataset 
         '''
-    #     dataset_file = open(cache_path, "rb")
-    #     scenegraphs_sequence, feature_list = pkl.load(dataset_file)
-    
         #Load sg dataset obj
         scene_graph_dataset  = SceneGraphDataset()
         scene_graph_dataset.dataset_save_path = self.config.location_data["input_path"]
-        self.scene_graph_dataset = scene_graph_dataset.load()
-        #scenegraphs_sequence = self.scene_graph_dataset.scene_graphs
-#         self.feature_list = set() #is this right or shld it be done sooner?, not really used in current sg extraction pipeline
-#         for i in range(self.config.training_configuration["num_of_classes"]): #    if so need to add num_classes to config
-#             self.feature_list.add("type_"+str(i))
-#             
+        self.scene_graph_dataset = scene_graph_dataset.load()     
     
         class_0 = []
         class_1 = []
@@ -231,6 +207,51 @@ class Scenegraph_Trainer(Trainer):
         sequence = next(iter(train_loader)).to(self.config.training_configuration["device"])
         
         return (sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)    
+
+
+    def train(self): #edit
+        if (self.config.training_configuration['task_type'] in ['sequence_classification','graph_classification','collision_prediction']):
+            tqdm_bar = tqdm(range(self.config.training_configuration['epochs']))
+    
+            for epoch_idx in tqdm_bar: # iterate through epoch   
+                acc_loss_train = 0
+                self.sequence_loader = DataListLoader(self.training_data, batch_size=self.config.training_configuration["batch_size"])
+    
+                for data_list in self.sequence_loader: # iterate through batches of the dataset
+                    self.model.train()
+                    self.optimizer.zero_grad()
+                    labels = torch.empty(0).long().to(self.config.training_configuration["device"])
+                    outputs = torch.empty(0,2).to(self.config.training_configuration["device"])
+    
+                    #need to change below for current implementation
+                    for sequence in data_list: # iterate through scene-graph sequences in the batch
+                        data, label = sequence['sequence'], sequence['label'] 
+                        graph_list = [Data(x=g['node_features'], edge_index=g['edge_index'], edge_attr=g['edge_attr']) for g in data]  
+                        self.train_loader = DataLoader(graph_list, batch_size=len(graph_list))
+                        sequence = next(iter(self.train_loader)).to(self.config.training_configuration["device"])
+                        output, _ = self.model.forward(sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)
+                        if self.config.training_configuration['task_type'] == 'sequence_classification': # seq vs graph based learning
+                            labels  = torch.cat([labels, torch.LongTensor([label]).to(self.config.training_configuration["device"])], dim=0)
+                        elif self.config.training_configuration['task_type'] in ['collision_prediction']:
+                            label = torch.LongTensor(np.full(output.shape[0], label)).to(self.config.training_configuration["device"]) #fill label to length of the sequence. shape (len_input_sequence, 1)
+                            labels  = torch.cat([labels, label], dim=0)
+                        else:
+                            raise ValueError('task_type is unimplemented')
+                        outputs = torch.cat([outputs, output.view(-1, 2)], dim=0) #in this case the output is of shape (len_input_sequence, 2)
+                    loss_train = self.loss_func(outputs, labels)
+                    loss_train.backward()
+                    acc_loss_train += loss_train.detach().cpu().item() * len(data_list)
+                    self.optimizer.step()
+                    del loss_train
+    
+                acc_loss_train /= len(self.training_data)
+                tqdm_bar.set_description('Epoch: {:04d}, loss_train: {:.4f}'.format(epoch_idx, acc_loss_train))
+    
+                if epoch_idx % self.config.training_configuration["test_step"] == 0:
+                    self.evaluate(epoch_idx)
+                    
+        else:
+            raise ValueError('train(): task type error') 
     
                 
     def cross_valid(self): #edit
@@ -254,11 +275,6 @@ class Scenegraph_Trainer(Trainer):
                self.training_labels = y_train
                self.testing_labels  = y_test
     
-               # To compute frame-level class weighting
-    #             total_train_labels = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.training_data]) 
-    #             total_test_labels = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.testing_data])
-    #             self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.total_train_labels), self.total_train_labels))
-               #^^^ repetitive, we alrdy calculate this in split_dataset()
                if self.config.training_configuration['task_type'] == 'sequence_classification':
                    print('\nFold {}'.format(self.fold))
                    print("Number of Sequences Included: ", len(self.training_data))
@@ -270,8 +286,6 @@ class Scenegraph_Trainer(Trainer):
                    print("Number of Testing Sequences Included: ",  len(self.testing_data))
                    print("Number of Training Labels in Each Class: " + str(np.unique(self.total_train_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
                    print("Number of Testing Labels in Each Class: " + str(np.unique(self.total_test_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
-               
-               
                
                self.best_val_loss = 99999
                self.train()
@@ -300,7 +314,7 @@ class Scenegraph_Trainer(Trainer):
             num_safe_sequences = 0
             sum_predicted_risky_indices = 0 #sum is calculated as (value * (index+1))/sum(range(seq_len)) for each value and index in the sequence.
             sum_predicted_safe_indices = 0  #sum is calculated as ((1-value) * (index+1))/sum(range(seq_len)) for each value and index in the sequence.
-            inference_time = 0
+            inference_time = 0 #TODO: remove this metric
             prof_result = ""
             correct_risky_seq = 0
             correct_safe_seq = 0
@@ -316,14 +330,10 @@ class Scenegraph_Trainer(Trainer):
                         self.test_loader = DataLoader(data_list, batch_size=len(data_list))
                         sequence = next(iter(self.test_loader)).to(self.config.training_configuration["device"])
                         self.model.eval()
-                        #start = torch.cuda.Event(enable_timing=True)
-                        #end =  torch.cuda.Event(enable_timing=True)
-                        #start.record()
+
                         output, attns = self.model.forward(sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)
-                        #import pdb; pdb.set_trace()
-                        #end.record()
-                        #torch.cuda.synchronize()
-                        inference_time += 0#start.elapsed_time(end)
+
+                        inference_time += 0
                         output = output.view(-1,2)
                         label = torch.LongTensor(np.full(output.shape[0], label)).to(self.config.training_configuration["device"]) #fill label to length of the sequence.
     

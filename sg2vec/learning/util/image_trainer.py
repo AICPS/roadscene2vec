@@ -3,16 +3,10 @@ from pathlib import Path
 sys.path.append(str(Path("../../")))
 import torch
 import numpy as np
-
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, precision_score, recall_score, roc_auc_score, roc_curve
-from sg2vec.learning.util.trainer import Trainer
-
-from sg2vec.data.dataset import RawImageDataset
 from tqdm import tqdm
-
-from sg2vec.learning.model.cnn_lstm import CNN_LSTM_Classifier
-from sg2vec.learning.model.lstm import LSTM_Classifier
-from sg2vec.learning.model.cnn import CNN_Classifier
+from sg2vec.learning.util.trainer import Trainer
+from sg2vec.learning.util.model_input_preprocessing import *
+from sg2vec.data.dataset import RawImageDataset
 from sklearn.utils.class_weight import compute_class_weight
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -22,11 +16,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 from sg2vec.learning.util.metrics import *
 import wandb
 
-from sg2vec.learning.util.model_input_preprocessing import *
-
-import sg2vec
-sys.modules['data'] = sg2vec.data
-
+'''TODO: add class description'''
 class Image_Trainer(Trainer):
 
     def __init__(self, config, wandb_a = None):
