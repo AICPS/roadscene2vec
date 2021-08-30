@@ -17,7 +17,7 @@ import matplotlib
 matplotlib.use("Agg")
 import wandb
 import torch.nn as nn
-
+import pdb
 from networkx.drawing import nx_pydot
 
 sys.modules['util'] = sg2vec.util
@@ -172,7 +172,7 @@ def inspect_trainer(training_config):
     node_attns_train_proc = []
     count = 0
     for i in tqdm(range(len(trainer.training_data))):
-        node_attns_train_proc += parse_attn_weights(node_attns_train[i], trainer.training_data[i]['sequence'], dest_dir, training_config.use_case_5_data["vizualize"], training_config.use_case_5_data["RELATION_NAMES"])
+        node_attns_train_proc += parse_attn_weights(node_attns_train[i], trainer.training_data[i]['sequence'], dest_dir, training_config.use_case_5_data["visualize"], training_config.use_case_5_data["RELATION_NAMES"])
         count += 1
     node_attns_test_proc = []
     for i in tqdm(range(len(trainer.testing_data))):

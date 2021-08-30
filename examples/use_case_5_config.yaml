@@ -1,43 +1,63 @@
 ---
 use_case_5_data:
-    vizualize: True
-    visualize_save_path: '/home/harsimrat/av_data/viz5'
+    visualize: True
+    visualize_save_path: '/home/arnav/av_data/seq_viz5'
     iterations: 1
-    inspect_csv_store_path: '/home/harsimrat/av_data/inspect_image_4.csv'
+    inspect_csv_store_path: '/home/arnav/av_data/seq_attns.csv'
     RELATION_NAMES: ['isIn', 'inDFrontOf', 'inSFrontOf', 'atDRearOf', 'atSRearOf', 'toLeftOf', 'toRightOf', 'near_coll', 'super_near' , 'very_near', 'near' ,'visible']
+
 location_data:
-    input_path: '/home/harsimrat/av_data/entire_lanechange_seq_new_imp_sg.pkl'
+    input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/271_carla_scenegraph_new.pkl'
     #TODO: revise this configuration file. copy it from 3_train_graph_learning.py argparser config
     #scenegraph_dataset_object_path: 'C:/av_data/preprocessed_dataset.pkl'
     transfer_path: Null #Path to the transfer file.
+
 model_configuration:
-  model: 'mrgcn'
-  num_layers: 3
-  load_model: True
-  num_relations: 12 #num of types of relations extracted, needed only for graph based models
+  num_relations: 12 #num of types of relations extracted, needed only for graph based models 
+  model: 'mrgcn' #options: mrgcn, mrgin, cnn, cnn_lstm, resnet50_lstm, lstm, gru
+  num_layers: 2
+  load_model: False
+  num_of_classes: 8 #num of actors
+  conv_type: 'FastRGCNConv'
+  hidden_dim: 64
+  layer_spec: null
+  pooling_type: 'sagpool'
+  pooling_ratio: 1.0
+  readout_type: 'add'
+  temporal_type: 'lstm_attn'
+  lstm_input_dim: 50
+  lstm_output_dim: 20
+  nclass: 2
+  dropout: 0.1 #0.25
+  device: 'cuda'
+  activation: 'relu'
+  model_load_path: '/home/arnav/sg2vec/sg2vec/scripts/model/model_best_val_loss_.vec.pt'
+  model_save_path: './model/model_best_val_loss_.vec.pt'
+  num_of_classes: 9 #8 #num of actors
+
 training_configuration:
-  task_type: 'collision_prediction'
+  task_type: 'sequence_classification'
   scenegraph_dataset_type: "real" #carla or real
   n_fold: 1 # 2
   num_of_classes: 9 #8 #num of actors
-  learning_rate: 0.0001 #0.00005
+  learning_rate: 0.00001 #0.00005
   epochs: 1
   cache_path: '../script/image_dataset.pkl'
   transfer_path: ''
-  model_load_path: '/home/harsimrat/av_data/whole_lane_change_ego_car_rels_only.pt' #need to move model to examples folder
+  model_load_path: '/home/arnav/sg2vec/sg2vec/scripts/model/model_best_val_loss_.vec.pt' #need to move model to examples folder
   model_save_path: './model/model_best_val_loss_.vec.pt'
   split_ratio: 0.3
   downsample: False
-  seed: 2063609112 #random.randint(0,2**32)
+  seed: 0 #random.randint(0,2**32)
   activation: 'relu'
   weight_decay: 0.0005
-  dropout: 0.1 #0.25
+  dropout: 0.0 #0.25
   nclass: 2
-  batch_size: 32
+  batch_size: 1
   device: 'cuda'
   test_step: 10
   conv_type: 'FastRGCNConv'
-  num_layers: 3
+  num_layers: 2
   hidden_dim: 64
   layer_spec: null
   pooling_type: 'sagpool'
@@ -47,6 +67,7 @@ training_configuration:
   lstm_input_dim: 50
   lstm_output_dim: 20
   stats_path: 'best_stats.csv'
+
 wandb_configuration:
   entity: Null #'aicps'
   project: Null #'av-scenegraph'
