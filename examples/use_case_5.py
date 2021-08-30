@@ -1,5 +1,5 @@
 import sys, os
-sys.path.append(os.path.dirname(sys.path[0]))
+sys.path.append("../")
 import sg2vec
 from sg2vec.util.config_parser import configuration
 from sg2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
@@ -21,7 +21,7 @@ import pdb
 from networkx.drawing import nx_pydot
 
 sys.modules['util'] = sg2vec.util
-
+sys.modules['data'] = sg2vec.data
 
 
 def add_node(g, node, label):
@@ -176,7 +176,7 @@ def inspect_trainer(training_config):
         count += 1
     node_attns_test_proc = []
     for i in tqdm(range(len(trainer.testing_data))):
-        node_attns_test_proc += parse_attn_weights(node_attns_test[i], trainer.testing_data[i]['sequence'], dest_dir, training_config.use_case_5_data["vizualize"], training_config.use_case_5_data["RELATION_NAMES"])
+        node_attns_test_proc += parse_attn_weights(node_attns_test[i], trainer.testing_data[i]['sequence'], dest_dir, training_config.use_case_5_data["visualize"], training_config.use_case_5_data["RELATION_NAMES"])
     
     for output, label, folder_name, attns, node_attns in zip(outputs_train, labels_train, folder_names_train, attns_train, node_attns_train_proc):
         inspecting_result_df = inspecting_result_df.append(
