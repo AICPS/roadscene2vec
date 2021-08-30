@@ -1,23 +1,22 @@
+import os
+import sys
 import cv2
 from PIL import Image
 from io import BytesIO
 from pprint import pprint
 from networkx.drawing import nx_agraph, nx_pydot
-import sys, os
-from pathlib import Path
-sys.path.append(str(Path("../../")))
-from sg2vec.util import config_parser
-from sg2vec.scene_graph.scene_graph import SceneGraph
-# from scene_graph.extraction.carla_extractor import CarlaExtractor # going to ignore for now...
-from sg2vec.scene_graph.extraction.image_extractor import RealExtractor
-
+sys.path.append(os.path.dirname(sys.path[0]))
+from util import config_parser
+from scene_graph.scene_graph import SceneGraph
+from scene_graph.extraction.image_extractor import RealExtractor
+from data.dataset import RawImageDataset
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
-
-TEMP_PATH = '../config/scene_graph_config_real.yaml'
-
+from pathlib import Path
+from tqdm import tqdm
 from timeit import default_timer as timer
+
 def elapsed_time(func, *args, **kwargs):
   start = timer()
   output = func(*args, **kwargs)
@@ -26,14 +25,13 @@ def elapsed_time(func, *args, **kwargs):
   return output
 
 # Utilities
-def get_parser(yml_path):
-  return config_parser.configuration(yml_path)
-
-def get_extractor(fname=TEMP_PATH):
-  return RealExtractor(get_parser(fname))
+def get_extractor(config):
+  return RealExtractor(config)
 
 def get_data(extractor):
-  return extractor.data_set.data
+  temp = RawImageDataset()
+  temp.dataset_save_path = extractor.input_path
+  return temp.load().data
 
 def get_bev(extractor):
   return extractor.bev#.warpPerspective(frame)
@@ -84,10 +82,11 @@ def draw_scenegraph_pydot(sg):
   return Image.open(BytesIO(img))
 
 def draw(extractor, frame, bbox, bev, sg, save_path=None):
-  
-  img = frame
+
+#  frame = frame.transpose(1,2,0) #must do this for cv functionality due to change in real preprocessor
+#  img = frame
   plt.subplot(2, 3, 1)
-  plt.imshow(cv2_color(img))
+  plt.imshow(cv2_color(frame))
   plt.title("Raw Image")
   plt.axis('off')
   
@@ -97,13 +96,14 @@ def draw(extractor, frame, bbox, bev, sg, save_path=None):
   plt.title("Object Detection Image")
   plt.axis('off')
   
+  #import pdb;pdb.set_trace()
   bev_img = draw_bev(bev, frame)
   plt.subplot(2, 3, 3)
   plt.imshow(cv2_color(bev_img))
   plt.title("Bird's Eye Image")
   plt.axis('off')
 
-  sg_img = draw_scenegraph_pydot(sg).convert('RGB')
+  sg_img = draw_scenegraph_pydot(sg)
   plt.subplot(2, 1, 2)
   plt.imshow(sg_img)
   plt.title("SceneGraph Image")
@@ -115,19 +115,19 @@ def draw(extractor, frame, bbox, bev, sg, save_path=None):
 
   plt.show()
   
-def visualize(sg_config_file):
-    extractor = elapsed_time(get_extractor, sg_config_file)
-    data = get_data(extractor)
-    gen_data = yield_data(data)
+def visualize(extraction_config):
+  extractor = get_extractor(extraction_config)
+  dataset_dir = extractor.conf.location_data["input_path"]
+  if not os.path.exists(dataset_dir):
+      raise FileNotFoundError(dataset_dir)
+  all_sequence_dirs = [x for x in Path(dataset_dir).iterdir() if x.is_dir()]
+  all_sequence_dirs = sorted(all_sequence_dirs, key=lambda x: int(x.stem.split('_')[0]))  #can't use this lamda to sort in the future
+  for path in tqdm(all_sequence_dirs):
+      sequence = extractor.load_images(path)
+      for frame in sorted(sequence.keys()):
+          bbox = get_bbox(extractor, sequence[frame])
+          bev = get_bev(extractor)
+          sg = get_scenegraph(extractor, bbox, bev)
     
-    while True:
-      try:
-        frame = next(gen_data)
-      except:
-        print('- finished'); break;
-      else:
-        bbox = get_bbox(extractor, frame)
-        bev = get_bev(extractor)
-        sg = get_scenegraph(extractor, bbox, bev)
-    
-        draw(extractor, frame, bbox, bev, sg, save_path='output.png')
+          draw(extractor, sequence[frame], bbox, bev, sg, save_path='output.png')
+  print('- finished')

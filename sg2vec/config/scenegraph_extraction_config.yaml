@@ -1,10 +1,11 @@
 ---
 dataset_type: 'image'
 location_data:
-    # input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/5_frame_honda_lane_change.pkl' #5_frame_shortened_1_seq_raw_dataset.pkl'
     input_path: '/home/louisccc/NAS/louisccc/av/honda_data/filtered_clips/lanechange/'
     data_save_path: '/home/harsimrat/av_data/entire_lanechange_seq_new_imp_sg.pkl'#where to save scenegraph dataset
-    #TODO: revise this configuration file
+    
+
+#TODO: comment this configuration file
 
 relation_extraction_settings:
   framenum: 1000
@@ -27,5 +28,5 @@ relation_extraction_settings:
   proximity_relation_list: [['car','road',25], ['ego_car', 'car',25]] #[[ACTORTYPE1, ACTORTYPE2, max proximity distance before relation is not extracted]]
   directional_relation_list: [['car','road',25], ['ego_car', 'car',25]] #[[ACTORTYPE1, ACTORTYPE2, max proximity distance before relation is not extracted]]
 
-image_settings: #currently tuned for Honda
+image_settings: #only for use with real image scenegraph extraction
     BEV_PATH: '/home/harsimrat/sg2vec/sg2vec/scene_graph/extraction/bev/bev.json'

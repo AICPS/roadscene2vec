@@ -9,21 +9,23 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
 from sklearn.model_selection import train_test_split, StratifiedKFold
 import wandb
-
+from tqdm import tqdm
 from sg2vec.learning.util.trainer import Trainer
 from sg2vec.data.dataset import SceneGraphDataset
-from torch_geometric.data import Data, DataLoader
-from sg2vec.learning.util.model_input_preprocessing import * #TODO: remove model_input_preprocessing
-from sg2vec.learning.util.metrics import * #TODO: remove star imports
+from torch_geometric.data import Data, DataLoader, DataListLoader
+from sg2vec.learning.util.metrics import get_metrics, log_wandb, log_wandb_transfer_learning 
 
 
 class Scenegraph_Trainer(Trainer):
     def __init__(self, config, wandb_a = None):
         super(Scenegraph_Trainer, self).__init__(config, wandb_a)
+        self.feature_list = set()
+        for i in range(self.config.model_configuration['num_of_classes']):
+            self.feature_list.add("type_"+str(i))
 
     def split_dataset(self): #this is init_dataset from multimodal
         if (self.config.training_configuration['task_type'] in ['sequence_classification','graph_classification','collision_prediction']):
-            self.training_data, self.testing_data, self.feature_list = self.build_scenegraph_dataset()
+            self.training_data, self.testing_data = self.build_scenegraph_dataset()
             self.total_train_labels = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.training_data]) # used to compute frame-level class weighting
             self.total_test_labels  = np.concatenate([np.full(len(data['sequence']), data['label']) for data in self.testing_data])
             self.training_labels = [data['label'] for data in self.training_data]
@@ -53,12 +55,12 @@ class Scenegraph_Trainer(Trainer):
         sorted_seq = sorted(self.scene_graph_dataset.labels)
         if self.config.training_configuration["scenegraph_dataset_type"] == "carla":
             for ind, seq in enumerate(sorted_seq): #for each seq in labels
-                data_to_append = {"sequence":process_carla_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
+                data_to_append = {"sequence":self.scene_graph_dataset.process_carla_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 self.transfer_data.append(data_to_append)
                     
         elif self.config.training_configuration["scenegraph_dataset_type"] == "image":
             for ind, seq in enumerate(sorted_seq): 
-                data_to_append = {"sequence":process_real_image_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
+                data_to_append = {"sequence":self.scene_graph_dataset.process_real_image_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 self.transfer_data.append(data_to_append)
         else:
             raise ValueError('dataset_type unrecognized')
@@ -144,7 +146,7 @@ class Scenegraph_Trainer(Trainer):
         sorted_seq = sorted(self.scene_graph_dataset.labels)
         if self.config.training_configuration["scenegraph_dataset_type"] == "carla":
             for ind, seq in enumerate(sorted_seq): #for each seq in labels
-                data_to_append = {"sequence":process_carla_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
+                data_to_append = {"sequence":self.scene_graph_dataset.process_carla_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 if self.scene_graph_dataset.labels[seq] == 0:
 #                     class_0.append(scene_graph_dataset.scene_graphs[seq]) #right now we are appending whole dictionary that contains data for all frame sg, shld we instead append each frame's sg separately
                     class_0.append(data_to_append)  #maybe individually for graph based and all frames together in one for seq based?
@@ -154,7 +156,7 @@ class Scenegraph_Trainer(Trainer):
                     
         elif self.config.training_configuration["scenegraph_dataset_type"] == "real":
             for ind, seq in enumerate(sorted_seq): 
-                data_to_append = {"sequence":process_real_image_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
+                data_to_append = {"sequence":self.scene_graph_dataset.process_real_image_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 if self.scene_graph_dataset.labels[seq] == 0:
 #                     class_0.append(scene_graph_dataset.scene_graphs[seq]) #right now we are appending whole dictionary that contains data for all frame sg, shld we instead append each frame's sg separately
                     class_0.append(data_to_append)  #maybe individually for graph based and all frames together in one for seq based?
@@ -180,7 +182,7 @@ class Scenegraph_Trainer(Trainer):
         if self.config.location_data["transfer_path"] != None:
             self.build_transfer_learning_dataset()
         #dont do kfold here instead it is done when learn() is called
-        return train, test, self.feature_list # redundant return of self.feature_list
+        return train, test
     
 
     def format_use_case_model_input(self, sequence):
@@ -188,17 +190,17 @@ class Scenegraph_Trainer(Trainer):
         ''' move to another file'''
         if self.config.training_configuration["scenegraph_dataset_type"] == "carla":
             for seq in sequence.scene_graphs:
-                data = {"sequence":process_carla_graph_sequences(sequence.scene_graphs[seq], feature_list = self.feature_list, folder_name = sequence.folder_names[0]) , "label":None, "folder_name": sequence.folder_names[0]}
+                data = {"sequence":self.scene_graph_dataset.process_carla_graph_sequences(sequence.scene_graphs[seq], feature_list = self.feature_list, folder_name = sequence.folder_names[0]) , "label":None, "folder_name": sequence.folder_names[0]}
         elif self.config.training_configuration["scenegraph_dataset_type"] == "real":
             for seq in sequence.scene_graphs:
-                data = {"sequence":process_real_image_graph_sequences(sequence.scene_graphs[seq], feature_list = self.feature_list, folder_name = sequence.folder_names[0]) , "label":None, "folder_name": sequence.folder_names[0]}
+                data = {"sequence":self.scene_graph_dataset.process_real_image_graph_sequences(sequence.scene_graphs[seq], feature_list = self.feature_list, folder_name = sequence.folder_names[0]) , "label":None, "folder_name": sequence.folder_names[0]}
         else:
             raise ValueError('output():scenegraph_dataset_type unrecognized')
         #####################
         data = data['sequence']
         graph_list = [Data(x=g['node_features'], edge_index=g['edge_index'], edge_attr=g['edge_attr']) for g in data]  
         train_loader = DataLoader(graph_list, batch_size=len(graph_list))
-        sequence = next(iter(train_loader)).to(self.config.training_configuration["device"])
+        sequence = next(iter(train_loader)).to(self.config.model_configuration["device"])
         
         return (sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)    
 
@@ -214,20 +216,20 @@ class Scenegraph_Trainer(Trainer):
                 for data_list in self.sequence_loader: # iterate through batches of the dataset
                     self.model.train()
                     self.optimizer.zero_grad()
-                    labels = torch.empty(0).long().to(self.config.training_configuration["device"])
-                    outputs = torch.empty(0,2).to(self.config.training_configuration["device"])
+                    labels = torch.empty(0).long().to(self.config.model_configuration["device"])
+                    outputs = torch.empty(0,2).to(self.config.model_configuration["device"])
     
                     #need to change below for current implementation
                     for sequence in data_list: # iterate through scene-graph sequences in the batch
                         data, label = sequence['sequence'], sequence['label'] 
                         graph_list = [Data(x=g['node_features'], edge_index=g['edge_index'], edge_attr=g['edge_attr']) for g in data]  
                         self.train_loader = DataLoader(graph_list, batch_size=len(graph_list))
-                        sequence = next(iter(self.train_loader)).to(self.config.training_configuration["device"])
+                        sequence = next(iter(self.train_loader)).to(self.config.model_configuration["device"])
                         output, _ = self.model.forward(sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)
                         if self.config.training_configuration['task_type'] == 'sequence_classification': # seq vs graph based learning
-                            labels  = torch.cat([labels, torch.LongTensor([label]).to(self.config.training_configuration["device"])], dim=0)
+                            labels  = torch.cat([labels, torch.LongTensor([label]).to(self.config.model_configuration["device"])], dim=0)
                         elif self.config.training_configuration['task_type'] in ['collision_prediction']:
-                            label = torch.LongTensor(np.full(output.shape[0], label)).to(self.config.training_configuration["device"]) #fill label to length of the sequence. shape (len_input_sequence, 1)
+                            label = torch.LongTensor(np.full(output.shape[0], label)).to(self.config.model_configuration["device"]) #fill label to length of the sequence. shape (len_input_sequence, 1)
                             labels  = torch.cat([labels, label], dim=0)
                         else:
                             raise ValueError('task_type is unimplemented')
@@ -296,8 +298,8 @@ class Scenegraph_Trainer(Trainer):
                    
                    
     def inference(self, testing_data, testing_labels):
-            labels = torch.LongTensor().to(self.config.training_configuration["device"])
-            outputs = torch.FloatTensor().to(self.config.training_configuration["device"])
+            labels = torch.LongTensor().to(self.config.model_configuration["device"])
+            outputs = torch.FloatTensor().to(self.config.model_configuration["device"])
             acc_loss_test = 0
             attns_weights = []
             node_attns = []
@@ -322,14 +324,14 @@ class Scenegraph_Trainer(Trainer):
                         folder_names.append(testing_data[i]['folder_name'])
                         data_list = [Data(x=g['node_features'], edge_index=g['edge_index'], edge_attr=g['edge_attr']) for g in data]
                         self.test_loader = DataLoader(data_list, batch_size=len(data_list))
-                        sequence = next(iter(self.test_loader)).to(self.config.training_configuration["device"])
+                        sequence = next(iter(self.test_loader)).to(self.config.model_configuration["device"])
                         self.model.eval()
 
                         output, attns = self.model.forward(sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)
 
                         inference_time += 0
                         output = output.view(-1,2)
-                        label = torch.LongTensor(np.full(output.shape[0], label)).to(self.config.training_configuration["device"]) #fill label to length of the sequence.
+                        label = torch.LongTensor(np.full(output.shape[0], label)).to(self.config.model_configuration["device"]) #fill label to length of the sequence.
     
                         #log metrics for risky and non-risky clips separately.
                         if(1 in label):

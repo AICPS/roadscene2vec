@@ -21,31 +21,30 @@ class MRGCN(nn.Module):
     
     def __init__(self, config):
         super(MRGCN, self).__init__()
+        self.num_features = config.model_configuration['num_of_classes']
+        self.num_relations = config.model_configuration['num_relations']
+        self.num_classes  = config.model_configuration['nclass']
+        self.num_layers = config.model_configuration['num_layers'] #defines number of RGCN conv layers.
+        self.hidden_dim = config.model_configuration['hidden_dim']
+        self.layer_spec = None if config.model_configuration['layer_spec'] == None else list(map(int, config.model_configuration['layer_spec'].split(',')))
+        self.lstm_dim1 = config.model_configuration['lstm_input_dim']
+        self.lstm_dim2 = config.model_configuration['lstm_output_dim']
+        self.rgcn_func = FastRGCNConv if config.model_configuration['conv_type'] == "FastRGCNConv" else RGCNConv
+        self.activation = F.relu if config.model_configuration['activation'] == 'relu' else F.leaky_relu
+        self.pooling_type = config.model_configuration['pooling_type']
+        self.readout_type = config.model_configuration['readout_type']
+        self.temporal_type = config.model_configuration['temporal_type']
 
-        self.num_features = config.num_features
-        self.num_relations = config.num_relations
-        self.num_classes  = config.training_configuration['nclass']
-        self.num_layers = config.training_configuration['num_layers'] #defines number of RGCN conv layers.
-        self.hidden_dim = config.training_configuration['hidden_dim']
-        self.layer_spec = None if config.training_configuration['layer_spec'] == None else list(map(int, config.training_configuration['layer_spec'].split(',')))
-        self.lstm_dim1 = config.training_configuration['lstm_input_dim']
-        self.lstm_dim2 = config.training_configuration['lstm_output_dim']
-        self.rgcn_func = FastRGCNConv if config.training_configuration['conv_type'] == "FastRGCNConv" else RGCNConv
-        self.activation = F.relu if config.training_configuration['activation'] == 'relu' else F.leaky_relu
-        self.pooling_type = config.training_configuration['pooling_type']
-        self.readout_type = config.training_configuration['readout_type']
-        self.temporal_type = config.training_configuration['temporal_type']
-
-        self.dropout = config.training_configuration['dropout']
+        self.dropout = config.model_configuration['dropout']
         self.conv = []
         total_dim = 0
 
         if self.layer_spec == None:
             if self.num_layers > 0:
-                self.conv.append(self.rgcn_func(self.num_features, self.hidden_dim, self.num_relations).to(config.training_configuration['device']))
+                self.conv.append(self.rgcn_func(self.num_features, self.hidden_dim, self.num_relations).to(config.model_configuration['device']))
                 total_dim += self.hidden_dim
                 for i in range(1, self.num_layers):
-                    self.conv.append(self.rgcn_func(self.hidden_dim, self.hidden_dim, self.num_relations).to(config.training_configuration['device']))
+                    self.conv.append(self.rgcn_func(self.hidden_dim, self.hidden_dim, self.num_relations).to(config.model_configuration['device']))
                     total_dim += self.hidden_dim
             else:
                 self.fc0_5 = Linear(self.num_features, self.hidden_dim)
@@ -53,10 +52,10 @@ class MRGCN(nn.Module):
             if self.num_layers > 0:
                 print("using layer specification and ignoring hidden_dim parameter.")
                 print("layer_spec: " + str(self.layer_spec))
-                self.conv.append(self.rgcn_func(self.num_features, self.layer_spec[0], self.num_relations).to(config.training_configuration['device']))
+                self.conv.append(self.rgcn_func(self.num_features, self.layer_spec[0], self.num_relations).to(config.model_configuration['device']))
                 total_dim += self.layer_spec[0]
                 for i in range(1, self.num_layers):
-                    self.conv.append(self.rgcn_func(self.layer_spec[i-1], self.layer_spec[i], self.num_relations).to(config.training_configuration['device']))
+                    self.conv.append(self.rgcn_func(self.layer_spec[i-1], self.layer_spec[i], self.num_relations).to(config.model_configuration['device']))
                     total_dim += self.layer_spec[i]
 
             else:
@@ -64,9 +63,9 @@ class MRGCN(nn.Module):
                 total_dim += self.hidden_dim
 
         if self.pooling_type == "sagpool":
-            self.pool1 = RGCNSAGPooling(total_dim, self.num_relations, ratio=config.training_configuration['pooling_ratio'], rgcn_func=config.training_configuration['conv_type'])
+            self.pool1 = RGCNSAGPooling(total_dim, self.num_relations, ratio=config.model_configuration['pooling_ratio'], rgcn_func=config.model_configuration['conv_type'])
         elif self.pooling_type == "topk":
-            self.pool1 = TopKPooling(total_dim, ratio=config.training_configuration['pooling_ratio'])
+            self.pool1 = TopKPooling(total_dim, ratio=config.model_configuration['pooling_ratio'])
 
         self.fc1 = Linear(total_dim, self.lstm_dim1)
         

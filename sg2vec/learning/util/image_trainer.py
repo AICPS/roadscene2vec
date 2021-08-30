@@ -5,7 +5,6 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from sg2vec.learning.util.trainer import Trainer
-from sg2vec.learning.util.model_input_preprocessing import * #TODO: remove model_input_preprocessing
 from sg2vec.data.dataset import RawImageDataset
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.utils import shuffle
@@ -14,7 +13,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
 import pickle as pkl
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from sg2vec.learning.util.metrics import * #TODO: remove star imports
+from sg2vec.learning.util.metrics import get_metrics, log_im_wandb, log_wandb_categories 
 import wandb
 
 '''TODO: add class description'''
@@ -139,8 +138,8 @@ class Image_Trainer(Trainer):
             raise ValueError('train(): task type error')
               
     def model_inference(self, X, y, clip_name):
-        labels = torch.LongTensor().to(self.config.training_configuration['device'])
-        outputs = torch.FloatTensor().to(self.config.training_configuration['device'])
+        labels = torch.LongTensor().to(self.config.model_configuration['device'])
+        outputs = torch.FloatTensor().to(self.config.model_configuration['device'])
         # Dictionary storing (output, label) pair for all driving categories
         categories = {'outputs': outputs, 'labels': labels}
         batch_size = self.config.training_configuration['batch_size'] # NOTE: set to 1 when profiling or calculating inference time.

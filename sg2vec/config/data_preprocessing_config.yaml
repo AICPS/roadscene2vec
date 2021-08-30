@@ -1,9 +1,8 @@
 ---
 dataset_type: 'image'
 location_data:
-    #TODO: revise this configuration file
     input_path: '/home/louisccc/NAS/louisccc/av/honda_data/filtered_clips/lanechange/'
-    data_save_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/571_honda_image_dataset_5_frame_128x72.pkl'
+    data_save_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/571_honda_image_dataset_5_frame_128x72_test.pkl'
 frame_data:
     frames_limit: 5
 output_format:

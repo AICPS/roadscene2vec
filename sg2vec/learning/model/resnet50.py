@@ -12,7 +12,7 @@ class ResNet50_Classifier(nn.Module):
         self.cfg = cfg
         self.batch_size, self.frames, self.channels, self.height, self.width = input_shape
         self.resnet = nn.Sequential(*list(models.resnet50(pretrained=True, progress=True).children())[:-1])
-        self.dropout = self.cfg.training_configuration['dropout']
+        self.dropout = self.cfg.model_configuration['dropout']
         if self.cfg.training_configuration['task_type'] == 'collision_prediction':
             self.l1 = nn.Linear(in_features=2048, out_features=512)
             self.l2 = nn.Linear(in_features=512, out_features=2)

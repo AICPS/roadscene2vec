@@ -23,20 +23,20 @@ from .rgcn_sag_pooling import RGCNSAGPooling
 class MRGIN(nn.Module):
     def __init__(self, config):
         super(MRGIN, self).__init__()
-        self.num_features = config.num_features
-        self.num_relations = config.num_relations
-        self.num_classes  = config.training_configuration['nclass']
-        self.num_layers = config.training_configuration['num_layers'] #defines number of RGCN conv layers.
-        self.hidden_dim = config.training_configuration['hidden_dim']
-        self.layer_spec = None if config.training_configuration['layer_spec'] == None else list(map(int, config.training_configuration['layer_spec'].split(',')))
-        self.lstm_dim1 = config.training_configuration['lstm_input_dim']
-        self.lstm_dim2 = config.training_configuration['lstm_output_dim']
-        self.rgcn_func = FastRGCNConv if config.training_configuration['conv_type'] == "FastRGCNConv" else RGCNConv
-        self.activation = F.relu if config.training_configuration['activation'] == 'relu' else F.leaky_relu
-        self.pooling_type = config.training_configuration['pooling_type']
-        self.readout_type = config.training_configuration['readout_type']
-        self.temporal_type = config.training_configuration['temporal_type']
-        self.dropout = config.training_configuration['dropout']
+        self.num_features = config.model_configuration['num_of_classes']
+        self.num_relations = config.model_configuration['num_relations']
+        self.num_classes  = config.model_configuration['nclass']
+        self.num_layers = config.model_configuration['num_layers'] #defines number of RGCN conv layers.
+        self.hidden_dim = config.model_configuration['hidden_dim']
+        self.layer_spec = None if config.model_configuration['layer_spec'] == None else list(map(int, config.model_configuration['layer_spec'].split(',')))
+        self.lstm_dim1 = config.model_configuration['lstm_input_dim']
+        self.lstm_dim2 = config.model_configuration['lstm_output_dim']
+        self.rgcn_func = FastRGCNConv if config.model_configuration['conv_type'] == "FastRGCNConv" else RGCNConv
+        self.activation = F.relu if config.model_configuration['activation'] == 'relu' else F.leaky_relu
+        self.pooling_type = config.model_configuration['pooling_type']
+        self.readout_type = config.model_configuration['readout_type']
+        self.temporal_type = config.model_configuration['temporal_type']
+        self.dropout = config.model_configuration['dropout']
         self.conv = []
         self.pool = []
         total_dim = 0
@@ -44,13 +44,13 @@ class MRGIN(nn.Module):
         if self.layer_spec == None:
             for i in range(self.num_layers):
                 if i == 0:
-                    self.conv.append(self.rgcn_func(self.num_features, self.hidden_dim, self.num_relations).to(config.training_configuration['device']))
+                    self.conv.append(self.rgcn_func(self.num_features, self.hidden_dim, self.num_relations).to(config.model_configuration['device']))
                 else:
-                    self.conv.append(self.rgcn_func(self.hidden_dim, self.hidden_dim, self.num_relations).to(config.training_configuration['device']))
+                    self.conv.append(self.rgcn_func(self.hidden_dim, self.hidden_dim, self.num_relations).to(config.model_configuration['device']))
                 if self.pooling_type == "sagpool":
-                    self.pool.append(RGCNSAGPooling(self.hidden_dim, self.num_relations, ratio=config.training_configuration['pooling_ratio'], rgcn_func=config.training_configuration['conv_type']).to(config.training_configuration['device']))
+                    self.pool.append(RGCNSAGPooling(self.hidden_dim, self.num_relations, ratio=config.model_configuration['pooling_ratio'], rgcn_func=config.model_configuration['conv_type']).to(config.model_configuration['device']))
                 elif self.pooling_type == "topk":
-                    self.pool.append(TopKPooling(self.hidden_dim, ratio=config.training_configuration['pooling_ratio']).to(config.training_configuration['device']))
+                    self.pool.append(TopKPooling(self.hidden_dim, ratio=config.model_configuration['pooling_ratio']).to(config.model_configuration['device']))
                 total_dim += self.hidden_dim
         
         else:
@@ -58,13 +58,13 @@ class MRGIN(nn.Module):
             print("layer_spec: " + str(self.layer_spec))
             for i in range(self.num_layers):
                 if i == 0:
-                    self.conv.append(self.rgcn_func(self.num_features, self.layer_spec[0], self.num_relations).to(config.training_configuration['device']))
+                    self.conv.append(self.rgcn_func(self.num_features, self.layer_spec[0], self.num_relations).to(config.model_configuration['device']))
                 else:
-                    self.conv.append(self.rgcn_func(self.layer_spec[i-1], self.layer_spec[i], self.num_relations).to(config.training_configuration['device']))
+                    self.conv.append(self.rgcn_func(self.layer_spec[i-1], self.layer_spec[i], self.num_relations).to(config.model_configuration['device']))
                 if self.pooling_type == "sagpool":
-                    self.pool.append(RGCNSAGPooling(self.layer_spec[i], self.num_relations, ratio=config.training_configuration['pooling_ratio'], rgcn_func=config.training_configuration['conv_type']).to(config.training_configuration['device']))
+                    self.pool.append(RGCNSAGPooling(self.layer_spec[i], self.num_relations, ratio=config.model_configuration['pooling_ratio'], rgcn_func=config.model_configuration['conv_type']).to(config.model_configuration['device']))
                 elif self.pooling_type == "topk":
-                    self.pool.append(TopKPooling(self.layer_spec[i], ratio=config.training_configuration['pooling_ratio']).to(config.training_configuration['device']))
+                    self.pool.append(TopKPooling(self.layer_spec[i], ratio=config.model_configuration['pooling_ratio']).to(config.model_configuration['device']))
                 total_dim += self.layer_spec[i]
             
         self.fc1 = Linear(total_dim, self.lstm_dim1)

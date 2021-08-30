@@ -19,7 +19,7 @@ class LSTM_Classifier(nn.Module):
         self.cfg = cfg
         self.model_name = model_name
         self.batch_size, self.frames, self.channels, self.height, self.width = input_shape
-        self.dropout = nn.Dropout(self.cfg.training_configuration['dropout'])
+        self.dropout = nn.Dropout(self.cfg.model_configuration['dropout'])
 
         if self.model_name == 'gru':
             self.l1 = nn.GRU(input_size=self.channels*self.height*self.width, hidden_size=100, batch_first=True)
@@ -46,7 +46,7 @@ class LSTM_Classifier(nn.Module):
             l2 = self.l2(l1)
             return l2.squeeze()
         elif self.model_name == 'lstm':
-            dropout = lambda curr_layer: self.dropout(curr_layer) if self.cfg.training_configuration['dropout'] != 0 else curr_layer
+            dropout = lambda curr_layer: self.dropout(curr_layer) if self.cfg.model_configuration['dropout'] != 0 else curr_layer
             l1,_ = self.l1(x)  # return all sequences
             if self.cfg.training_configuration["task_type"] == "collision_prediction":
               l1 = l1.reshape(l1.shape[0]*l1.shape[1],512)

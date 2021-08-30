@@ -1,7 +1,7 @@
 import sys, os, pdb
 from pathlib import Path
-sys.path.append(str(Path("../../")))
-from sg2vec.data.preprocessor import Preprocessor as prepproc
+sys.path.append(str(Path("../../../")))
+from preprocessor import Preprocessor as prepproc
 from sg2vec.data import dataset as ds
 from pathlib import Path
 from tqdm import tqdm
@@ -43,7 +43,6 @@ class RealPreprocessor(prepproc):
                     lines = label_file.readlines()
                     l0 = 1.0 if float(lines[0].strip().split(",")[0]) >= 0 else 0.0 
                     self.dataset.labels[seq] = l0
-
 
     '''Represent each frame in sequence in terms of a tensor'''               
     def _load_images(self, path):

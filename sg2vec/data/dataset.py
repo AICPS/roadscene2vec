@@ -6,6 +6,11 @@ from pathlib import Path
 sys.path.append(str(Path("../../")))
 from abc import ABC
 import pickle as pkl
+import numpy as np
+import pandas as pd
+import torch
+import math
+from collections import defaultdict
 
 '''
 Abstract class defining dataset properties and functions
@@ -30,11 +35,9 @@ class BaseDataset(ABC):
         self.config = config
         self.data = None
         self.labels = None
-        self.meta = None
         self.dataset_save_path = config.location_data["data_save_path"]
         self.dataset_type = config.dataset_type
         self.action_types = None
-        self.raw_scenes = None
         self.ignore = []
         self.folder_names = None
 
@@ -47,21 +50,6 @@ class BaseDataset(ABC):
     def load(self):
         with open(self.dataset_save_path, 'rb') as f:
             return pkl.load(f)
-
-
-'''
-Dataset containing ground truth information about the road state.
-'''
-class GroundTruthDataset(BaseDataset):
-    # REQ: contains ground truth information about objects in the scene
-    def __init__(self, config):
-        super(GroundTruthDataset, self).__init__(config)
-        #indexes for these three below are seq numbers
-        self.meta = {}
-        self.action_types = {}
-        self.labels = {} 
-        self.raw_scenes = {} #this is dict within dict: raw_scenes[sequence_number][frame_number]
-
 
 '''
 Dataset containing image data and associated information only.
@@ -102,4 +90,67 @@ class SceneGraphDataset(BaseDataset):
             self.meta = meta_data
             self.labels = label_data
             self.action_types = action_types
+
+
+    # this is for creation of trainer input using carla data #TODO move this to scenegraph dataset class?
+    #=======================================================
+    def process_carla_graph_sequences(self, scenegraphs, feature_list, frame_numbers = None, folder_name=None): #returns a dictionary containing sg metadata for each frame in a sequence
+                                                            #default frame_numbers to len of sg dict that contains scenegraphs for each frame of the given sequence
+        '''
+            The self.scenegraphs_sequence should be having same length after the subsampling. 
+            This function will get the graph-related features (node embeddings, edge types, adjacency matrix) from scenegraphs.
+            in tensor formats.
+        '''
+        if frame_numbers == None:
+            frame_numbers = sorted(list(scenegraphs.keys()))
+        scenegraphs = [scenegraphs[frames] for frames in sorted(scenegraphs.keys())]
+        sequence = []
+        for idx, (scenegraph, frame_number) in enumerate(zip(scenegraphs, frame_numbers)):
+            sg_dict = {}
+            
+            node_name2idx = {node:idx for idx, node in enumerate(scenegraph.g.nodes)}
+    
+            sg_dict['node_features']                    = scenegraph.get_carla_node_embeddings(feature_list)
+            sg_dict['edge_index'], sg_dict['edge_attr'] = scenegraph.get_carla_edge_embeddings(node_name2idx)
+            sg_dict['folder_name'] = folder_name
+            sg_dict['frame_number'] = frame_number
+            sg_dict['node_order'] = node_name2idx
+            sequence.append(sg_dict)
+    
+        return sequence
+  
+    #===================================================================
+    
+    # this is for creation of trainer input using image data 
+    #===================================================================
+    
+    def process_real_image_graph_sequences(self, scenegraphs, feature_list, frame_numbers=None, folder_name=None):
+        '''
+            The self.scenegraphs_sequence should be having same length after the subsampling. 
+            This function will get the graph-related features (node embeddings, edge types, adjacency matrix) from scenegraphs.
+            in tensor formats.
+        '''
+        if frame_numbers == None:
+            frame_numbers = sorted(list(scenegraphs.keys()))
+        scenegraphs = [scenegraphs[frames] for frames in sorted(scenegraphs.keys())]
+        sequence = []
+    
+        for idx, (scenegraph, frame_number) in enumerate(zip(scenegraphs, frame_numbers)):
+            sg_dict = {}
+    
+            node_name2idx = {node: idx for idx,
+                             node in enumerate(scenegraph.g.nodes)}
+    
+            sg_dict['node_features'] = scenegraph.get_real_image_node_embeddings(feature_list)
+            sg_dict['edge_index'], sg_dict['edge_attr'] = scenegraph.get_real_image_edge_embeddings(node_name2idx)
+            sg_dict['folder_name'] = folder_name
+            sg_dict['frame_number'] = frame_number
+            sg_dict['node_order'] = node_name2idx
+            sequence.append(sg_dict)
+    
+        return sequence
+    
+    
+    
+    #==================================================================
 

@@ -17,9 +17,6 @@ from sg2vec.learning.model.mrgin import MRGIN
 from sg2vec.learning.model.cnn import CNN_Classifier
 from sg2vec.learning.model.resnet50_lstm import ResNet50_LSTM_Classifier
 from sg2vec.learning.model.resnet50 import ResNet50_Classifier
-from sg2vec.learning.util.metrics import *
-from sg2vec.learning.util.model_input_preprocessing import * #TODO: remove star imports. also remove model_input_preprocessing
-
 
 
 '''TODO: add class description'''
@@ -46,10 +43,7 @@ class Trainer:
             np.random.seed(self.config.seed)
             torch.manual_seed(self.config.seed)
             
-        self.feature_list = set()
-        for i in range(self.config.training_configuration['num_of_classes']):
-            self.feature_list.add("type_"+str(i))
-        self.toGPU = lambda x, dtype: torch.as_tensor(x, dtype=dtype, device=self.config.training_configuration['device'])
+        self.toGPU = lambda x, dtype: torch.as_tensor(x, dtype=dtype, device=self.config.model_configuration['device'])
         self.initialize_best_metrics()
 
 
@@ -74,24 +68,22 @@ class Trainer:
         # BD mode
         #self.config.num_features = len(self.feature_list)
         #self.config.num_relations = max([r.value for r in Relations])+1
-        self.config.num_features = self.config.training_configuration['num_of_classes']
-        self.config.num_relations = self.config.model_configuration['num_relations']
         if self.config.model_configuration["model"] == "mrgcn":
-            self.model = MRGCN(self.config).to(self.config.training_configuration["device"])
+            self.model = MRGCN(self.config).to(self.config.model_configuration["device"])
         elif self.config.model_configuration["model"]  == "mrgin":
-            self.model = MRGIN(self.config).to(self.config.training_configuration["device"])
+            self.model = MRGIN(self.config).to(self.config.model_configuration["device"])
         elif self.config.model_configuration["model"]  == "cnn":
-            self.model = CNN_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.training_configuration["device"])
+            self.model = CNN_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.model_configuration["device"])
         elif self.config.model_configuration["model"]  == "cnn_lstm":
-            self.model = CNN_LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.training_configuration["device"])
+            self.model = CNN_LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.model_configuration["device"])
         elif self.config.model_configuration["model"]  == "lstm":
-            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width),'lstm', self.config).to(self.config.training_configuration["device"])        
+            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width),'lstm', self.config).to(self.config.model_configuration["device"])        
         elif self.config.model_configuration["model"]  == "gru":
-            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), 'gru', self.config).to(self.config.training_configuration["device"]) 
+            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), 'gru', self.config).to(self.config.model_configuration["device"]) 
         elif self.config.model_configuration["model"] == "resnet50_lstm":
-            self.model = ResNet50_LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.training_configuration["device"]) 
+            self.model = ResNet50_LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.model_configuration["device"]) 
         elif self.config.model_configuration["model"] == "resnet50":
-            self.model = ResNet50_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.training_configuration["device"]) 
+            self.model = ResNet50_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.model_configuration["device"]) 
         else:
             raise Exception("model selection is invalid: " + self.config.model_configuration["model"])
         
@@ -102,7 +94,7 @@ class Trainer:
             if self.class_weights.shape[0] < 2:
                 self.loss_func = nn.CrossEntropyLoss()
             else:
-                self.loss_func = nn.CrossEntropyLoss(weight=self.class_weights.float().to(self.config.training_configuration["device"]))
+                self.loss_func = nn.CrossEntropyLoss(weight=self.class_weights.float().to(self.config.model_configuration["device"]))
      
             #wandb.watch(self.model, log="all")
             if self.log:
@@ -131,7 +123,7 @@ class Trainer:
     
     def save_model(self):
         """Function to save the model."""
-        saved_path = Path(self.config.training_configuration["model_save_path"]).resolve()
+        saved_path = Path(self.config.model_configuration["model_save_path"]).resolve()
         os.makedirs(os.path.dirname(saved_path), exist_ok=True)
         torch.save(self.model.state_dict(), str(saved_path))
         with open(os.path.dirname(saved_path) + "/model_parameters.txt", "w+") as f:
@@ -141,7 +133,7 @@ class Trainer:
 
     def load_model(self):
         """Function to load the model."""
-        saved_path = Path(self.config.training_configuration["model_load_path"]).resolve()
+        saved_path = Path(self.config.model_configuration["model_load_path"]).resolve()
         if saved_path.exists():
             self.build_model()
             self.model.load_state_dict(torch.load(str(saved_path)))

@@ -12,21 +12,20 @@ class CNN_LSTM_Classifier(nn.Module):
         super(CNN_LSTM_Classifier, self).__init__()
         self.cfg = cfg
         self.batch_size, self.frames, self.channels, self.height, self.width = input_shape
-        self.dropout = self.cfg.training_configuration['dropout']
+        self.dropout = self.cfg.model_configuration['dropout']
         self.kernel_size = (3, 3)
         self.lstm_layers = 1
         self.conv_size = lambda i, k, p, s: int((i-k+2*p)/s + 1)
         self.pool_size = lambda i, k, p, s, pool : self.conv_size(i, k, p, s) // pool + 1
         self.flat_size = lambda f, h, w : f*h*w
         self.TimeDistributed = lambda curr_layer, prev_layer : torch.stack([curr_layer(prev_layer[:,i]) for i in range(self.frames)], dim=1)
-        self.enable_bnorm = self.cfg.training_configuration['bnorm']
+        self.enable_bnorm = self.cfg.model_configuration['bnorm']
         # Note: conv_size and pool_size only work for square 2D matrices, if not a square matrix, run once for height dim and another time for width dim
         '''
         conv_size = lambda i, k, p, s: int((i-k+2*p)/s + 1)
         pool_size = lambda i, k, p, s, pool : conv_size(i, k, p, s) // pool + 1
         flat_size = lambda f, h, w : f*h*w
         '''
-        #if self.cfg.training_configuration['task_type'] == 'sequence_classification':
         self.bn1 = nn.BatchNorm3d(num_features=self.frames)
         self.bn2 = nn.BatchNorm3d(num_features=self.frames)
         self.bn3 = nn.BatchNorm3d(num_features=self.frames)

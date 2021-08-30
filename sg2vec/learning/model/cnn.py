@@ -18,7 +18,7 @@ class CNN_Classifier(nn.Module):
         self.kernel_size = (1, 5, 5)
         self.conv_size = lambda i, k, p, s: int((i-k+2*p)/s + 1)
         self.pool_size = lambda i, k, p, s, pool : conv_size(i, k, p, s) // pool + 1   
-        self.dropout = self.cfg.training_configuration['dropout']
+        self.dropout = self.cfg.model_configuration['dropout']
         self.task_type = self.cfg.training_configuration['task_type']
         
         if self.task_type == 'sequence_classification':
