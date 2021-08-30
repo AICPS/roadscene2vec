@@ -5,16 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchnlp.nn import Attention
 from torch.nn import Linear, LSTM
-from torch_geometric.nn import RGCNConv, SAGPooling, TopKPooling, FastRGCNConv
+from torch_geometric.nn import RGCNConv, TopKPooling, FastRGCNConv
 from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_pool
-
-from torch_geometric.nn import GraphConv
-from torch_geometric.nn.pool.topk_pool import topk, filter_adj
-from torch_geometric.utils import softmax
-#import pdb
-
-#import mrgin
-#import rgcn_sag_pooling
 from .rgcn_sag_pooling import RGCNSAGPooling
 
 class MRGCN(nn.Module):

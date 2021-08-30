@@ -493,7 +493,7 @@ class Scenegraph_Trainer(Trainer):
             self.best_val_mcc = metrics['test']['mcc']
             self.best_val_acc_balanced = metrics['test']['balanced_acc']
             self.best_avg_pred_frame = metrics['test']['avg_prediction_frame']
-            #self.save_model()
+            self.save_model()
 
     
     # Averages metrics after the end of each cross validation fold

@@ -1,16 +1,7 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torchnlp.nn import Attention
-from torch.nn import Linear, LSTM
-from torch_geometric.nn import RGCNConv, SAGPooling, TopKPooling, FastRGCNConv
-from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_pool
-
-from torch_geometric.nn import GraphConv
+from torch_geometric.nn import RGCNConv, FastRGCNConv
 from torch_geometric.nn.pool.topk_pool import topk, filter_adj
 from torch_geometric.utils import softmax
-import pdb
-
 
 class RGCNSAGPooling(torch.nn.Module):
     def __init__(self, in_channels, num_relations, ratio=0.5, min_score=None,
@@ -23,7 +14,6 @@ class RGCNSAGPooling(torch.nn.Module):
         self.min_score = min_score
         self.multiplier = multiplier
         self.nonlinearity = nonlinearity
-
         self.reset_parameters()
 
     def reset_parameters(self):

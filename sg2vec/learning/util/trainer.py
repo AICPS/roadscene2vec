@@ -99,6 +99,8 @@ class Trainer:
             #wandb.watch(self.model, log="all")
             if self.log:
                 self.wandb.watch(self.model, log="all")
+        else:
+            pass #TODO implement model loading functionality
 
 
     # Pick between Standard Training and KFold Cross Validation Training
@@ -138,3 +140,5 @@ class Trainer:
             self.build_model()
             self.model.load_state_dict(torch.load(str(saved_path)))
             self.model.eval()
+        else:
+            raise FileNotFoundError("Failed to load model. Model load path does not exist: " + str(saved_path))
