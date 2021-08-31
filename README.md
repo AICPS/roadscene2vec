@@ -41,7 +41,53 @@ pip install -r requirements.txt
 ---
 ## Usage Examples
 ### Use Case 1: Converting an Ego-Centric Observation (Image) into a Scene-Graph
-TODO
+In this use case, we demonstrate how to use SG2VEC to extract road scenegraphs from a driving clip. In the sample script examples/use_case_1.py, SG2VEC first takes in the use_case_1_scenegraph_extraction_config.yaml config file. This file specifies the location of the data from which to extract scenegraphs from along with the various relations and actors to include in each scenegraph . A RealScenegraphExtraction object is created using the use_case_1_scenegraph_extraction_config.yaml file. This RealScenegraphExtraction then extracts scenegraphs and saves them as a SceneGraphDataset object. 
+
+To run this use case, cd into the examples folder and run the corresponding module. 
+
+```shell
+$ cd examples
+$ python use_case_1.py
+```
+
+Default specifications are given in the config file, but users can edit the config file used in this use case by heading into the examples folder. .
+In use_case_1_scenegraph_extraction_config.yaml the user can specify what type of preprocessed dataset object they would like to extract scenegraphs from - "carla" or "image". 
+They can also list the input path of this preprocessed dataset object along with where to save the SceneGraphDataset object created after extraction. Finally, relational settings used during extraction can also be edited in this file. The config file with default arguments along with comments explaining each config parameter is shown below:
+
+```shell
+---
+dataset_type: 'image' #Type of data from which to extract scenegraphs from. Options: 'image', 'carla'
+location_data:
+    input_path: '/lanechange' #input path to main directory containing driving sequence subdirectories from which to extract scenegraphs
+    data_save_path: '/use_case_1_sg_extraction_output.pkl' #path to save extracted scenegraph dataset
+
+relation_extraction_settings:
+  frames_limit: null #extract scenegraphs for 1 frame every n frames per sequence subdirectory. currently only functional for image based extraction. Options: null(None), Integer n
+  ACTOR_NAMES: ["ego_car", 'car','moto','bicycle','ped','lane','light','sign', 'road'] #types of actors that can be found in data sequences. ego_car actor represents the car from whose perspective we are viewing the road. this array's structure is also used for one-hot encoding when creating node embeddings, "ego_car", "lane", "road" are assumed to always be in this list.
+  RELATION_NAMES: ['isIn', 'inDFrontOf', 'inSFrontOf', 'atDRearOf', 'atSRearOf', 'toLeftOf', 'toRightOf', 'near_coll', 'super_near' , 'very_near', 'near' ,'visible'] #types of relations to extract
+  
+  #actor types specified in proximity_relation_list, directional_relation_list must first be defined in ACTOR_NAMES
+  #relations specified in PROXIMITY_THRESHOLDS, DIRECTIONAL_THRESHOLDS, RELATION_COLORS must first be defined in RELATION_NAMES
+  PROXIMITY_THRESHOLDS: [['near_coll',4],['super_near',7],['very_near',10],['near',16],['visible',25]] #define proximity relations in the format [relation, distance (ft)] in decreasing order of closeness
+  LANE_THRESHOLD: 6 #feet. if object's center is more than this distance away from ego's center, build left or right lane relation. otherwise build middle lane relation
+  DIRECTIONAL_THRESHOLDS: [['isIn',[[0,0]]], ['inDFrontOf',[[45,90],[90,135]]], ['inSFrontOf',[[0,45],[135,180]]], ['atDRearOf',[[225,270],[270,315]]], ['atSRearOf',[[180,225],[315,360]]]] #Leftof and Rightof assumed to always be direction relations. additonal directional relations can be specified in the form [[relation], [[1st range of degrees], [2nd range of degrees], ..]]
+  RELATION_COLORS: [['isIn','black'],['near_coll','red'], ['super_near','orange'], ['very_near','yellow'], ['near','purple'], ['visible','green'], ['inDFrontOf','violet'], ['inSFrontOf','violet'], ['atDRearOf','turquoise'], ['atSRearOf','turquoise'], ['toLeftOf','blue'], ['toRightOf','blue']] #define relational edge colors for scenegraph visualization purposes in the format [relation, edge_color]
+  proximity_relation_list: [['car','road',25], ['ego_car', 'car',25]] #[[ACTORTYPE1, ACTORTYPE2, max proximity distance before relations are not extracted]]
+  directional_relation_list: [['car','road',25], ['ego_car', 'car',25]] #[[ACTORTYPE1, ACTORTYPE2, max proximity distance before relations are not extracted]] 
+  
+  #every type of actor in ACTOR_NAMES can have a list of synonymous names found in the object detection data. for a given ACTOR_NAMES array, all types of objects within the array are treated as objects of type ACTOR.
+  MOTO_NAMES: ["moto","Harley-Davidson", "Kawasaki", "Yamaha"]
+  BICYCLE_NAMES: ["bicycle","Gazelle", "Diamondback", "Bh"]
+  CAR_NAMES: ["car","TRUCK","BUS","Ford", "Bmw", "Toyota", "Nissan", "Mini", "Tesla", "Seat", "Lincoln", "Audi", "Carlamotors", "Citroen", "Mercedes-Benz", "Chevrolet", "Volkswagen", "Jeep", "Nissan", "Dodge", "Mustang"]
+  SIGN_NAMES: ["sign"]
+  LIGHT_NAMES: ["light"]
+  PED_NAMES: []
+  ROAD_NAMES: []
+  LANE_NAMES: []
+
+image_settings: #path to bev calibration data. only for use with real image scenegraph extraction
+    BEV_PATH: '/bev.json'
+```
 
 ### Use Case 2: Using Scene-Graph Embeddings for Subjective Risk Assessment
 This use case demonstrates how to use SG2VEC to classify a given sequence of images as safe or unsafe using risk assessment, which aims to model a driver's subjective analysis of risk on the road. In the sample script examples/use_case_2.py, RealExtractor first extracts a scene graph dataset from the directory of sequences using specifications in the use_case_2_scenegraph_extraction_config.yaml file. Finally, the use_case_2_scenegraph_learning_config.yaml file is used to create a Scenegraph_Trainer object which loads a pre-trained model to output the risk assessment for the created scene graph dataset. 
@@ -177,7 +223,63 @@ Arguments provided by these yaml files can again be manipulated by the user.
 
 
 ### Use Case 4: Evaluating Transfer Learning
-TODO
+In this use case, we demonstrate an example of a transfer learning experiment performed on a model trained using a SceneGraphDataset object and evaluated with another SceneGraphDataset object. 
+We first create a Scenegraph_Trainer object using the input_path in use_case_4.yaml config file. We then create the input dataset for the model and train said model. After this we create the transfer learning dataset using the transfer_path in the config file. Finally, we evaluate the model using this entire transfer learning dataset and print the metrics after.
+
+To run this use case, cd into the examples folder and run the corresponding module. 
+
+```shell
+$ cd examples
+$ python use_case_4.py
+```
+
+Default arguments are provided in the use_case_4.yaml config file, but the user can make changes. They can specify the path to the SceneGraphDataset object they would like to train with, along with the path to the SceneGraphDataset object they would like to practice transfer learning with. The user can also specify what type of model they would like to run this experiment on and tune the hyperparameters of said model. The config file with default arguments along with comments explaining each config parameter is shown below:
+```shell
+---
+location_data:
+    input_path: '/use_case_4_training_input.pkl'#path to pkl containing scenegraph dataset training/testing data
+    transfer_path: '/use_case_4_transfer_learning_input.pkl' #path to transfer dataset for transfer learning
+    
+model_configuration:
+  num_relations: 12 #num of types of relations extracted, needed only for graph based models 
+  model: 'mrgcn' #options: mrgcn, mrgin
+  num_layers: 3 #defines number of RGCN conv layers.
+  load_model: False #load pretrained model
+  num_of_classes: 9 #8 #num of actors
+  conv_type: 'FastRGCNConv'
+  hidden_dim: 64
+  layer_spec: null
+  pooling_type: 'sagpool'
+  pooling_ratio: 0.5
+  readout_type: 'add'
+  temporal_type: 'lstm_attn'
+  lstm_input_dim: 50
+  lstm_output_dim: 20
+  nclass: 2 #dimension of final output
+  dropout: 0.1 #dropout probability
+  device: 'cuda' #device to place training/testing data batches
+  activation: 'relu'
+  model_load_path: '' #path to load pretrained model
+  model_save_path: '/use_case_4_trained_model.pt' #path to save trained model
+   
+training_configuration:
+  dataset_type: "scenegraph" #Options: real, scenegraph. scenegraph only option for graph based models
+  scenegraph_dataset_type: "real" #type of data extracted to create input scenegraph data. Options: carla, real
+  task_type: 'sequence_classification' #Options: sequence_classification, graph_classification, collision_prediction
+  n_fold: 5 #number of folds for n-fold cross validation
+  learning_rate: 0.0001 #0.00005
+  epochs: 200
+  split_ratio: 0.3 #train-test split ratio
+  downsample: False
+  seed: 0 #seed used for train-test split
+  batch_size: 32 #batch size of training, testing data
+  test_step: 10 #perform test validation every n epochs
+  
+wandb_configuration:
+  entity: ''
+  project: ''
+
+```
 
 ### Use Case 5: Explainability Analysis
 TODO
