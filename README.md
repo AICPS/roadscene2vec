@@ -1,6 +1,18 @@
-# sg2vec: A Tool for Extracting and Embedding Road Scene-Graphs
+# roadscene2vec: A Tool for Extracting and Embedding Road Scene-Graphs
 ## Description
-TODO
+**roadscene2vec** is an open-source tool for extracting and embedding road scene-graphs. 
+The goal of **roadscene2vec** is to enable research into the applications and capabilities of road scene-graphs by providing tools for generating scene-graphs and a framework for running graph-learning algorithms on them. We provide tools and utilities for scene graph extraction, dataset processing, graph learning, and results analysis.
+
+If you find **roadscene2vec** useful for your work please cite our library as follows:
+
+```
+@misc{roadscene2vec,
+title={roadscene2vec: A Tool for Extracting and Embedding Road Scene-Graphs},
+author={Malawade, Arnav Vaibhav and Yu, Shih-Yuan and Hsu, Brandon and Kaeley, Harsimrat and Karra, Anurag and Al Faruque, Mohammad Abdullah},
+year={2021},
+url={https://github.com/AICPS/roadscene2vec}
+}
+```
 
 ---
 ## General Python Setup
