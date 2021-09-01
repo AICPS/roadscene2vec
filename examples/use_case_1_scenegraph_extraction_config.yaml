@@ -1,7 +1,7 @@
 ---
 dataset_type: 'image'
 location_data:
-    # input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/5_frame_honda_lane_change.pkl' #5_frame_shortened_1_seq_raw_dataset.pkl'
+    # input_path: '/home/louisccc/NAS/louisccc/av/roadscene2vec_pkls/5_frame_honda_lane_change.pkl' #5_frame_shortened_1_seq_raw_dataset.pkl'
     input_path: 'D:\research\av_data\20_frame_all_lane_change.pkl'
     data_save_path: 'D:\research\av_data\20_frame_all_lane_change_sg.pkl' #where to save scenegraph dataset
     #TODO: revise this configuration file
@@ -27,5 +27,5 @@ relation_extraction_settings:
   CAR_NAMES: ["Ford", "Bmw", "Toyota", "Nissan", "Mini", "Tesla", "Seat", "Lincoln", "Audi", "Carlamotors", "Citroen", "Mercedes-Benz", "Chevrolet", "Volkswagen", "Jeep", "Nissan", "Dodge", "Mustang"]
   
 image_setttings: #currently tuned for Honda
-    BEV_PATH: 'D:\research\sg2vec\sg2vec\scene_graph\extraction\bev\bev.json'
+    BEV_PATH: 'D:\research\roadscene2vec\roadscene2vec\scene_graph\extraction\bev\bev.json'
 

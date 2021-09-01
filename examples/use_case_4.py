@@ -1,18 +1,18 @@
 import sys, os
 sys.path.append(os.path.dirname(sys.path[0]))
-# import sg2vec.data.real_preprocessor as ip
-from sg2vec.util.config_parser import configuration
-# import sg2vec.scene_graph.extraction.image_extractor as RealEx
-import sg2vec
-from sg2vec.learning.util.trainer import Scenegraph_Trainer
-from sg2vec.data.dataset import SceneGraphDataset
-sys.modules['util'] = sg2vec.util
+# import roadscene2vec.data.real_preprocessor as ip
+from roadscene2vec.util.config_parser import configuration
+# import roadscene2vec.scene_graph.extraction.image_extractor as RealEx
+import roadscene2vec
+from roadscene2vec.learning.util.trainer import Scenegraph_Trainer
+from roadscene2vec.data.dataset import SceneGraphDataset
+sys.modules['util'] = roadscene2vec.util
 import wandb
 
 
 
 def train():
-    training_config = configuration(r"use_case_4_config.yaml",from_function = True) #replace with path to sg2vec\config\learning_config.yaml
+    training_config = configuration(r"use_case_4_config.yaml",from_function = True) #replace with path to roadscene2vec\config\learning_config.yaml
     wandb_arg= wandb.init(project=training_config.wandb_configuration['project'], entity=training_config.wandb_configuration['entity'])
     trainer = Scenegraph_Trainer(training_config, wandb_arg)
     trainer.split_dataset()

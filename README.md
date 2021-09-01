@@ -53,7 +53,7 @@ pip install -r requirements.txt
 ---
 ## Usage Examples
 ### Use Case 1: Converting an Ego-Centric Observation (Image) into a Scene-Graph
-In this use case, we demonstrate how to use SG2VEC to extract road scenegraphs from a driving clip. In the sample script examples/use_case_1.py, SG2VEC first takes in the use_case_1_scenegraph_extraction_config.yaml config file. This file specifies the location of the data from which to extract scenegraphs from along with the various relations and actors to include in each scenegraph . A RealScenegraphExtraction object is created using the use_case_1_scenegraph_extraction_config.yaml file. This RealScenegraphExtraction then extracts scenegraphs and saves them as a SceneGraphDataset object. 
+In this use case, we demonstrate how to use roadscene2vec to extract road scenegraphs from a driving clip. In the sample script examples/use_case_1.py, roadscene2vec first takes in the use_case_1_scenegraph_extraction_config.yaml config file. This file specifies the location of the data from which to extract scenegraphs from along with the various relations and actors to include in each scenegraph . A RealScenegraphExtraction object is created using the use_case_1_scenegraph_extraction_config.yaml file. This RealScenegraphExtraction then extracts scenegraphs and saves them as a SceneGraphDataset object. 
 
 To run this use case, cd into the examples folder and run the corresponding module. 
 
@@ -102,7 +102,7 @@ image_settings: #path to bev calibration data. only for use with real image scen
 ```
 
 ### Use Case 2: Using Scene-Graph Embeddings for Subjective Risk Assessment
-This use case demonstrates how to use SG2VEC to classify a given sequence of images as safe or unsafe using risk assessment, which aims to model a driver's subjective analysis of risk on the road. In the sample script examples/use_case_2.py, RealExtractor first extracts a scene graph dataset from the directory of sequences using specifications in the use_case_2_scenegraph_extraction_config.yaml file. Finally, the use_case_2_scenegraph_learning_config.yaml file is used to create a Scenegraph_Trainer object which loads a pre-trained model to output the risk assessment for the created scene graph dataset. 
+This use case demonstrates how to use roadscene2vec to classify a given sequence of images as safe or unsafe using risk assessment, which aims to model a driver's subjective analysis of risk on the road. In the sample script examples/use_case_2.py, RealExtractor first extracts a scene graph dataset from the directory of sequences using specifications in the use_case_2_scenegraph_extraction_config.yaml file. Finally, the use_case_2_scenegraph_learning_config.yaml file is used to create a Scenegraph_Trainer object which loads a pre-trained model to output the risk assessment for the created scene graph dataset. 
 
 To run this use case, use the following commands
 ```shell
@@ -200,7 +200,7 @@ image_settings: #path to bev calibration data. only for use with real image scen
 
 
 ### Use Case 3: Using Scene-Graph Embeddings for Collision Prediction
-This use case demonstrates how to use SG2VEC to predict future vehicle collisions using a time-series classification approach which anticipates if collisions will occur in the near future. In the sample script examples/use_case_3.py, RealExtractor first extracts a graph dataset from the directory of sequences using specifications in the use_case_3_scenegraph_extraction_config yaml file. Finally, the use_case_3_scenegraph_learning_config.yaml file is used to create a Scenegraph_Trainer object which loads a pre-trained model to output the collision prediction for the created scene graph dataset. In collision prediction, each frame in a sequence has an output, whereas risk assessment has one output for each sequence. 
+This use case demonstrates how to use roadscene2vec to predict future vehicle collisions using a time-series classification approach which anticipates if collisions will occur in the near future. In the sample script examples/use_case_3.py, RealExtractor first extracts a graph dataset from the directory of sequences using specifications in the use_case_3_scenegraph_extraction_config yaml file. Finally, the use_case_3_scenegraph_learning_config.yaml file is used to create a Scenegraph_Trainer object which loads a pre-trained model to output the collision prediction for the created scene graph dataset. In collision prediction, each frame in a sequence has an output, whereas risk assessment has one output for each sequence. 
 
 To run this use case, use the following commands
 ```shell

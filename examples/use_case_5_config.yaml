@@ -7,7 +7,7 @@ use_case_5_data:
     RELATION_NAMES: ['isIn', 'inDFrontOf', 'inSFrontOf', 'atDRearOf', 'atSRearOf', 'toLeftOf', 'toRightOf', 'near_coll', 'super_near' , 'very_near', 'near' ,'visible']
 
 location_data:
-    input_path: '/home/louisccc/NAS/louisccc/av/sg2vec_pkls/271_carla_scenegraph_new.pkl'
+    input_path: '/home/louisccc/NAS/louisccc/av/roadscene2vec_pkls/271_carla_scenegraph_new.pkl'
     #TODO: revise this configuration file. copy it from 3_train_graph_learning.py argparser config
     #scenegraph_dataset_object_path: 'C:/av_data/preprocessed_dataset.pkl'
     transfer_path: Null #Path to the transfer file.
@@ -31,7 +31,7 @@ model_configuration:
   dropout: 0.1 #0.25
   device: 'cuda'
   activation: 'relu'
-  model_load_path: '/home/arnav/sg2vec/sg2vec/scripts/model/model_best_val_loss_.vec.pt'
+  model_load_path: '/home/arnav/roadscene2vec/roadscene2vec/scripts/model/model_best_val_loss_.vec.pt'
   model_save_path: './model/model_best_val_loss_.vec.pt'
   num_of_classes: 9 #8 #num of actors
 
@@ -44,7 +44,7 @@ training_configuration:
   epochs: 1
   cache_path: '../script/image_dataset.pkl'
   transfer_path: ''
-  model_load_path: '/home/arnav/sg2vec/sg2vec/scripts/model/model_best_val_loss_.vec.pt' #need to move model to examples folder
+  model_load_path: '/home/arnav/roadscene2vec/roadscene2vec/scripts/model/model_best_val_loss_.vec.pt' #need to move model to examples folder
   model_save_path: './model/model_best_val_loss_.vec.pt'
   split_ratio: 0.3
   downsample: False

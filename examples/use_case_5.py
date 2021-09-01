@@ -1,9 +1,9 @@
 import sys, os
 sys.path.append("../")
-import sg2vec
-from sg2vec.util.config_parser import configuration
-from sg2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
-from sg2vec.learning.util.metrics import *
+import roadscene2vec
+from roadscene2vec.util.config_parser import configuration
+from roadscene2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
+from roadscene2vec.learning.util.metrics import *
 
 import numpy as np
 import networkx as nx
@@ -20,8 +20,8 @@ import torch.nn as nn
 import pdb
 from networkx.drawing import nx_pydot
 
-sys.modules['util'] = sg2vec.util
-sys.modules['data'] = sg2vec.data
+sys.modules['util'] = roadscene2vec.util
+sys.modules['data'] = roadscene2vec.data
 
 
 def add_node(g, node, label):
@@ -121,7 +121,7 @@ def parse_attn_weights(node_attns, sequences, dest_dir, visualize, relations):
 def inspect_trainer(training_config):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''
     iterations = training_config.use_case_5_data["iterations"]
-    #replace with path to sg2vec\config\learning_config.yaml
+    #replace with path to roadscene2vec\config\learning_config.yaml
     if training_config.wandb_configuration['project'] != None and training_config.wandb_configuration['entity'] != None:
         wandb_arg= wandb.init(project=training_config.wandb_configuration['project'], entity=training_config.wandb_configuration['entity'])
     else:
