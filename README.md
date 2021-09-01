@@ -14,6 +14,11 @@ url={https://github.com/AICPS/roadscene2vec}
 }
 ```
 
+Our other related work and associated repository:
+"Scene-Graph Augmented Data-Driven Risk Assessment of Autonomous Vehicle Decisions" 
+https://arxiv.org/abs/2009.06435 
+https://github.com/louisccc/sg-risk-assessment
+
 ---
 ## General Python Setup
 
@@ -37,7 +42,7 @@ conda activate av
 Install PyTorch to your conda virtual environment by following the instructions here for your CUDA version:
 https://pytorch.org/get-started/locally/
 
-In our experiments we used Torch 1.5 and 1.6 but later versions should also work fine.
+In our experiments we used Torch 1.5 and 1.6 but later versions should also work.
 
 
 Next, install the PyTorch Geometric library by running the corresponding commands for your Torch and CUDA version:
