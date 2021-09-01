@@ -19,6 +19,7 @@ from roadscene2vec.learning.util.metrics import get_metrics, log_wandb, log_wand
 class Scenegraph_Trainer(Trainer):
     def __init__(self, config, wandb_a = None):
         super(Scenegraph_Trainer, self).__init__(config, wandb_a)
+        self.scene_graph_dataset = SceneGraphDataset()
         self.feature_list = set()
         for i in range(self.config.model_configuration['num_of_classes']):
             self.feature_list.add("type_"+str(i))
@@ -58,7 +59,7 @@ class Scenegraph_Trainer(Trainer):
                 data_to_append = {"sequence":self.scene_graph_dataset.process_carla_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 self.transfer_data.append(data_to_append)
                     
-        elif self.config.training_configuration["scenegraph_dataset_type"] == "image":
+        elif self.config.training_configuration["scenegraph_dataset_type"] == "real":
             for ind, seq in enumerate(sorted_seq): 
                 data_to_append = {"sequence":self.scene_graph_dataset.process_real_image_graph_sequences(self.scene_graph_dataset.scene_graphs[seq], self.feature_list, folder_name = self.scene_graph_dataset.folder_names[ind] ), "label":self.scene_graph_dataset.labels[seq], "folder_name": self.scene_graph_dataset.folder_names[ind]}
                 self.transfer_data.append(data_to_append)
@@ -183,26 +184,7 @@ class Scenegraph_Trainer(Trainer):
             self.build_transfer_learning_dataset()
         #dont do kfold here instead it is done when learn() is called
         return train, test
-    
 
-    def format_use_case_model_input(self, sequence):
-        #####################
-        ''' move to another file'''
-        if self.config.training_configuration["scenegraph_dataset_type"] == "carla":
-            for seq in sequence.scene_graphs:
-                data = {"sequence":self.scene_graph_dataset.process_carla_graph_sequences(sequence.scene_graphs[seq], feature_list = self.feature_list, folder_name = sequence.folder_names[0]) , "label":None, "folder_name": sequence.folder_names[0]}
-        elif self.config.training_configuration["scenegraph_dataset_type"] == "real":
-            for seq in sequence.scene_graphs:
-                data = {"sequence":self.scene_graph_dataset.process_real_image_graph_sequences(sequence.scene_graphs[seq], feature_list = self.feature_list, folder_name = sequence.folder_names[0]) , "label":None, "folder_name": sequence.folder_names[0]}
-        else:
-            raise ValueError('output():scenegraph_dataset_type unrecognized')
-        #####################
-        data = data['sequence']
-        graph_list = [Data(x=g['node_features'], edge_index=g['edge_index'], edge_attr=g['edge_attr']) for g in data]  
-        train_loader = DataLoader(graph_list, batch_size=len(graph_list))
-        sequence = next(iter(train_loader)).to(self.config.model_configuration["device"])
-        
-        return (sequence.x, sequence.edge_index, sequence.edge_attr, sequence.batch)    
 
 
     def train(self): #edit

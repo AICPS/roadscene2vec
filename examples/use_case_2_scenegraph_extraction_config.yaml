@@ -1,31 +1,33 @@
 ---
-dataset_type: 'image'
+dataset_type: 'image' #Type of data from which to extract scenegraphs from. Options: 'image', 'carla'
 location_data:
-    # input_path: '/home/louisccc/NAS/louisccc/av/roadscene2vec_pkls/5_frame_honda_lane_change.pkl' #5_frame_shortened_1_seq_raw_dataset.pkl'
-    input_path: 'D:\research\av_data\20_frame_all_lane_change.pkl'
-    data_save_path: 'D:\research\av_data\20_frame_all_lane_change_sg.pkl' #where to save scenegraph dataset
-    #TODO: revise this configuration file
+    input_path: 'use_case_data/lanechange' #input path to main directory containing driving sequence subdirectories from which to extract scenegraphs
+    data_save_path: 'use_case_2_sg_extraction_output.pkl' #path to save extracted scenegraph dataset
 
 relation_extraction_settings:
-  framenum: 1000
-  ACTOR_NAMES: ['car','moto','bicycle','ped','lane','light','sign', 'road']
-  extract_directional_relations: True
-  extract_distance_relations: True
-  extract_all_car_car_relations: True
-  CAR_PROXIMITY_THRESH_NEAR_COLL: 3
-  CAR_PROXIMITY_THRESH_SUPER_NEAR: 7 # max number of feet between a car and another entity to build proximity relation
-  CAR_PROXIMITY_THRESH_VERY_NEAR: 10
-  CAR_PROXIMITY_THRESH_NEAR: 16
-  CAR_PROXIMITY_THRESH_VISIBLE: 25
-  MOTO_PROXIMITY_THRESH: 50
-  LANE_THRESHOLD: 6 #feet. if object's center is more than this distance away from ego's center, build left or right lane relation
-  CENTER_LANE_THRESHOLD: 9
-  BICYCLE_PROXIMITY_THRESH: 50
-  PED_PROXIMITY_THRESH: 50
-  MOTO_NAMES: ["Harley-Davidson", "Kawasaki", "Yamaha"]
-  BICYCLE_NAMES: ["Gazelle", "Diamondback", "Bh"]
-  CAR_NAMES: ["Ford", "Bmw", "Toyota", "Nissan", "Mini", "Tesla", "Seat", "Lincoln", "Audi", "Carlamotors", "Citroen", "Mercedes-Benz", "Chevrolet", "Volkswagen", "Jeep", "Nissan", "Dodge", "Mustang"]
+  frames_limit: null #extract scenegraphs for 1 frame every n frames per sequence subdirectory. currently only functional for image based extraction. Options: null(None), Integer n
+  ACTOR_NAMES: ["ego_car", 'car','moto','bicycle','ped','lane','light','sign', 'road'] #types of actors that can be found in data sequences. ego_car actor represents the car from whose perspective we are viewing the road. this array's structure is also used for one-hot encoding when creating node embeddings, "ego_car", "lane", "road" are assumed to always be in this list.
+  RELATION_NAMES: ['isIn', 'inDFrontOf', 'inSFrontOf', 'atDRearOf', 'atSRearOf', 'toLeftOf', 'toRightOf', 'near_coll', 'super_near' , 'very_near', 'near' ,'visible'] #types of relations to extract
   
-image_setttings: #currently tuned for Honda
-    BEV_PATH: 'D:\research\roadscene2vec\roadscene2vec\scene_graph\extraction\bev\bev.json'
+  #actor types specified in proximity_relation_list, directional_relation_list must first be defined in ACTOR_NAMES
+  #relations specified in PROXIMITY_THRESHOLDS, DIRECTIONAL_THRESHOLDS, RELATION_COLORS must first be defined in RELATION_NAMES
+  PROXIMITY_THRESHOLDS: [['near_coll',4],['super_near',7],['very_near',10],['near',16],['visible',25]] #define proximity relations in the format [relation, distance (ft)] in decreasing order of closeness
+  LANE_THRESHOLD: 6 #feet. if object's center is more than this distance away from ego's center, build left or right lane relation. otherwise build middle lane relation
+  DIRECTIONAL_THRESHOLDS: [['isIn',[[0,0]]], ['inDFrontOf',[[45,90],[90,135]]], ['inSFrontOf',[[0,45],[135,180]]], ['atDRearOf',[[225,270],[270,315]]], ['atSRearOf',[[180,225],[315,360]]]] #Leftof and Rightof assumed to always be direction relations. additonal directional relations can be specified in the form [[relation], [[1st range of degrees], [2nd range of degrees], ..]]
+  RELATION_COLORS: [['isIn','black'],['near_coll','red'], ['super_near','orange'], ['very_near','yellow'], ['near','purple'], ['visible','green'], ['inDFrontOf','violet'], ['inSFrontOf','violet'], ['atDRearOf','turquoise'], ['atSRearOf','turquoise'], ['toLeftOf','blue'], ['toRightOf','blue']] #define relational edge colors for scenegraph visualization purposes in the format [relation, edge_color]
+  proximity_relation_list: [['car','road',25], ['ego_car', 'car',25]] #[[ACTORTYPE1, ACTORTYPE2, max proximity distance before relations are not extracted]]
+  directional_relation_list: [['car','road',25], ['ego_car', 'car',25]] #[[ACTORTYPE1, ACTORTYPE2, max proximity distance before relations are not extracted]] 
+  
+  #every type of actor in ACTOR_NAMES can have a list of synonymous names found in the object detection data. for a given ACTOR_NAMES array, all types of objects within the array are treated as objects of type ACTOR.
+  MOTO_NAMES: ["moto","Harley-Davidson", "Kawasaki", "Yamaha"]
+  BICYCLE_NAMES: ["bicycle","Gazelle", "Diamondback", "Bh"]
+  CAR_NAMES: ["car","TRUCK","BUS","Ford", "Bmw", "Toyota", "Nissan", "Mini", "Tesla", "Seat", "Lincoln", "Audi", "Carlamotors", "Citroen", "Mercedes-Benz", "Chevrolet", "Volkswagen", "Jeep", "Nissan", "Dodge", "Mustang"]
+  SIGN_NAMES: ["sign"]
+  LIGHT_NAMES: ["light"]
+  PED_NAMES: []
+  ROAD_NAMES: []
+  LANE_NAMES: []
 
+
+image_settings: #path to bev calibration data. only for use with real image scenegraph extraction
+    BEV_PATH: 'use_case_data/bev.json'

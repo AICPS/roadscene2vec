@@ -55,7 +55,7 @@ class RealPreprocessor(prepproc):
         modulo = 0
         acc_number = 0
         if(self.dataset.frame_limit != None):
-            modulo = int(len(images) / self.dataset.frame_limit)  #subsample to frame_limit #TODO: fix this
+            modulo = int(len(images) / self.dataset.frame_limit)  #subsample to frame_limit 
         if(self.dataset.frame_limit == None or modulo == 0):
             modulo = 1
 
@@ -66,7 +66,7 @@ class RealPreprocessor(prepproc):
             self.dataset.color_channels = 1
 
         for i in range(0, len(images)):
-            if i % modulo == 0 and acc_number < self.dataset.frame_limit:
+            if (i % modulo == 0 and self.dataset.frame_limit == None) or (i % modulo == 0 and acc_number < self.dataset.frame_limit):
                 image_path = images[i]
                 frame_num = int(Path(image_path).stem)
                 if self.conf.output_format["color"] == "RGB":

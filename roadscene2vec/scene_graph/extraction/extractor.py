@@ -14,5 +14,5 @@ class Extractor(ABC):
         self.dataset_type = self.conf.dataset_type
         self.scene_graphs = {}
         self.relation_extractor = r_e.RelationExtractor(config)
-        self.framenum = self.conf.relation_extraction_settings["framenum"]
+        self.framenum = self.conf.relation_extraction_settings["frames_limit"]
         

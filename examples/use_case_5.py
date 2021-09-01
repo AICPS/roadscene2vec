@@ -121,7 +121,7 @@ def parse_attn_weights(node_attns, sequences, dest_dir, visualize, relations):
 def inspect_trainer(training_config):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''
     iterations = training_config.use_case_5_data["iterations"]
-    #replace with path to roadscene2vec\config\learning_config.yaml
+    #replace with path to sg2vec\config\learning_config.yaml
     if training_config.wandb_configuration['project'] != None and training_config.wandb_configuration['entity'] != None:
         wandb_arg= wandb.init(project=training_config.wandb_configuration['project'], entity=training_config.wandb_configuration['entity'])
     else:

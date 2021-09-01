@@ -10,10 +10,6 @@ def preprocess_data():
         img_preproc = ip.RealPreprocessor(data_config)
         img_preproc.load()
         base_ds = img_preproc.getDataSet()
-        print(base_ds.im_height)
-        print(base_ds.im_width)
-        print(base_ds.color_channels)
-        print(base_ds.frame_limit)
     else:
         raise ValueError("Please input a valid dataset type")
                

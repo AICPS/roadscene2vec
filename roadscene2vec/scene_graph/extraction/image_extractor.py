@@ -97,7 +97,7 @@ class RealExtractor(ex):
         if(self.framenum == None or modulo == 0):
             modulo = 1
         for i in range(0, len(images)):
-            if i % modulo == 0 and acc_number < self.framenum:
+            if (i % modulo == 0 and self.framenum == None) or (i % modulo == 0 and acc_number < self.framenum):
                 image_path = images[i]
                 frame_num = int(Path(image_path).stem)
                 im = cv2.imread(str(image_path), cv2.IMREAD_COLOR) 

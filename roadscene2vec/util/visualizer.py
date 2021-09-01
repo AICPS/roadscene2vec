@@ -1,21 +1,29 @@
 import os
 import sys
 import cv2
+from pathlib import Path
 from PIL import Image
 from io import BytesIO
 from pprint import pprint
 from networkx.drawing import nx_agraph, nx_pydot
-sys.path.append(os.path.dirname(sys.path[0]))
-from util import config_parser
-from scene_graph.scene_graph import SceneGraph
-from scene_graph.extraction.image_extractor import RealExtractor
-from data.dataset import RawImageDataset
+sys.path.append(str(Path("../../")))
+from roadscene2vec.util import config_parser
+from roadscene2vec.scene_graph.scene_graph import SceneGraph
+from roadscene2vec.scene_graph.extraction.image_extractor import RealExtractor
+from roadscene2vec.data.dataset import RawImageDataset
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
 from pathlib import Path
 from tqdm import tqdm
 from timeit import default_timer as timer
+
+def elapsed_time(func, *args, **kwargs):
+  start = timer()
+  output = func(*args, **kwargs)
+  end = timer()
+  print(f'{end - start} seconds elapsed.')
+  return output
 
 def elapsed_time(func, *args, **kwargs):
   start = timer()

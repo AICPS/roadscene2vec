@@ -78,12 +78,14 @@ class CarlaExtractor(ex):
                           if str(frame) in image_frames: 
                               scenegraph = SceneGraph(self.relation_extractor, framedict = frame_dict, framenum = frame, platform = "carla")
                               sg_extracted[seq][int(frame)] = scenegraph
-                              
+                      if self.framenum != None:
+                        sg_extracted[seq] = self.subsample(sg_extracted[seq])
                   except Exception as e:
                       import traceback
                       print("We have problem creating the Carla scenegraphs")
                       print(e)
                       traceback.print_exc()
+                  import pdb; pdb.set_trace()
         self.dataset.scene_graphs = sg_extracted
 
      
@@ -110,8 +112,8 @@ class CarlaExtractor(ex):
         '''
         number_of_frames=self.framenum
         
-        sequence = []
-        frame_numbers = []
+        sequence = {}
+        #frame_numbers = []
         acc_number = 0
         modulo = int(len(scenegraphs) / number_of_frames)
         if modulo == 0:
@@ -119,7 +121,8 @@ class CarlaExtractor(ex):
 
         for idx, (timeframe, scenegraph) in enumerate(scenegraphs.items()):
             if idx % modulo == 0 and acc_number < number_of_frames:
-                sequence.append(scenegraph)
-                frame_numbers.append(timeframe)
+                sequence[timeframe] = scenegraph
+                #sequence.append(scenegraph)
+                #frame_numbers.append(timeframe)
                 acc_number+=1
-        return sequence, frame_numbers
+        return sequence
