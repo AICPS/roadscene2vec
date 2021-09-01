@@ -363,5 +363,28 @@ wandb_configuration:
 ```
 
 ### Use Case 5: Explainability Analysis
-TODO
+This use case demonstrates how to use roadscene2vec to gain further insight into how a model makes decisions using spatial and temporal attention scores. Given a pre-trained model and a scene graph dataset, the script first creates a Scenegraph Trainer object using the use_case_5_config.yaml. Then, using the trainer’s inference function, the script gathers attention scores for every component of every scene graph. Finally, the parse_attn_weights function visualizes the attention scores in a scene graph for the user. 
+
+To run this use case, use the following commands
+```shell
+$ cd examples
+$ python use_case_5.py
+```
+
+Creation of Scenegraph Trainer - use_case_5_config.yaml
+```shell
+training_config = configuration(r"use_case_5_config.yaml",from_function = True)
+…
+trainer = Scenegraph_Trainer(training_config, wandb_arg)
+trainer.split_dataset()
+trainer.load_model()
+trainer.loss_func = nn.CrossEntropyLoss()
+#model_load_path should contain path to pretrained model
+#load_model should be set to True
+#set visualize in use_case_5_data to true to visualize the attention scores of the scene graphs
+```
+Note: The only parameters in the learning config that affect this use_case are load_model and model_load_path, as the models are already pre-trained. 
+
+
+
 
