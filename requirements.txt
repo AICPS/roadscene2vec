@@ -6,3 +6,7 @@ pillow~=8.3.1
 six~=1.16.0
 scikit-learn~=0.24.2
 torchvision~=0.10.0
+opencv-python
+pygame
+pyyaml
+pytest
