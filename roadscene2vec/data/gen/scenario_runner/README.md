@@ -2,6 +2,9 @@
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/carla-simulator/scenario_runner.svg)
 [![Build Status](https://travis-ci.com/carla-simulator/scenario_runner.svg?branch=master)](https://travis-ci.com/carla/scenario_runner)
 
+
+This folder was cloned from this repository: https://github.com/carla-simulator/scenario_runner
+
 ScenarioRunner for CARLA
 ========================
 This repository contains traffic scenario definition and an execution engine
