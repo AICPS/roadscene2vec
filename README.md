@@ -54,6 +54,11 @@ Once this setup is completed, install the rest of the requirements from requirem
 pip install -r requirements.txt
 ```
 
+If you want to use our CARLA dataset generation tools then you need to have the CARLA simulator and Python API installed as described here:
+https://github.com/carla-simulator/carla/releases
+
+https://carla.readthedocs.io/en/latest/start_quickstart/
+
 
 ---
 ## Usage Examples
