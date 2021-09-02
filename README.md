@@ -42,7 +42,7 @@ conda activate av
 Install PyTorch to your conda virtual environment by following the instructions here for your CUDA version:
 https://pytorch.org/get-started/locally/
 
-In our experiments we used Torch 1.5 and 1.6 but later versions should also work.
+In our experiments we used Torch 1.9 and CUDA 10.2 but later versions should also work.
 
 
 Next, install the PyTorch Geometric library by running the corresponding commands for your Torch and CUDA version:
