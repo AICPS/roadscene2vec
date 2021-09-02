@@ -10,3 +10,7 @@ opencv-python
 pygame
 pyyaml
 pytest
+pytorch-nlp
+wandb
+imageio
+py_trees

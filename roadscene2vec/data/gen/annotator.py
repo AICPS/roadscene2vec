@@ -1,7 +1,7 @@
 from pathlib import Path
 from pathlib import Path
 from tkinter import *
-
+from argparse import ArgumentParser
 from PIL import Image, ImageTk
 
 Image.DEBUG = 0
