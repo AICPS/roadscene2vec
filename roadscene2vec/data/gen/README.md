@@ -6,11 +6,11 @@ This file is used to annotate the dataset.
 
 ```python
 self.parser.add_argument('--input_path', type=str, default="merges/", help="Path to data directory.")
-        self.parser.add_argument('--start', type=int, default=10230, help="Starting lane change clip ex: for 5825_201706081335 use 5825")
-        self.parser.add_argument('--frame_delay', type=int, default=1, help="The amount of delay (ms) between each clip")
-        self.parser.add_argument('--filter', type=str, default='', help="Type of maneuver to consider {branches, lanechange, merges, turns2}")
-        self.parser.add_argument('--risk', default=False, action='store_true', help="Set to show only risky clips")
-        self.parser.add_argument('--nonrisk', default=False, action='store_true', help="Set to show only non-risky clips")
+self.parser.add_argument('--start', type=int, default=10230, help="Starting lane change clip ex: for 5825_201706081335 use 5825")
+self.parser.add_argument('--frame_delay', type=int, default=1, help="The amount of delay (ms) between each clip")
+self.parser.add_argument('--filter', type=str, default='', help="Type of maneuver to consider {branches, lanechange, merges, turns2}")
+self.parser.add_argument('--risk', default=False, action='store_true', help="Set to show only risky clips")
+self.parser.add_argument('--nonrisk', default=False, action='store_true', help="Set to show only non-risky clips")
 ```
 
 The most important buttons are Save Score, Ignore Clip, Pause, Replay Clip, Prev Clip, Next Clip.
