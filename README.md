@@ -21,6 +21,9 @@ https://github.com/louisccc/sg-risk-assessment
 
 ---
 ## General Python Setup
+All of our experiments were performed on a Linux Server running Ubuntu 16.04 LTS. 
+Our library has also been tested on Windows 10 but requires different installation steps for Detectron2 and CARLA.
+
 
 First, download and install Anaconda here:
 https://www.anaconda.com/products/individual
@@ -59,6 +62,9 @@ https://github.com/carla-simulator/carla/releases
 
 https://carla.readthedocs.io/en/latest/start_quickstart/
 
+
+To perform image scene-graph extraction, you must first install Detectron2 by following these instructions:
+https://detectron2.readthedocs.io/en/latest/tutorials/install.html
 
 ---
 ## Usage Examples
