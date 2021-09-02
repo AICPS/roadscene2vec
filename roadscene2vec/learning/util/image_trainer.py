@@ -1,4 +1,4 @@
-import sys, os, pdb
+import sys
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 import torch
@@ -11,10 +11,8 @@ from sklearn.utils import shuffle
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
-import pickle as pkl
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from roadscene2vec.learning.util.metrics import get_metrics, log_im_wandb, log_wandb_categories 
-import wandb
+from roadscene2vec.learning.util.metrics import get_metrics, log_im_wandb, log_wandb_categories
 
 '''TODO: add class description'''
 class Image_Trainer(Trainer):

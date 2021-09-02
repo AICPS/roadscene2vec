@@ -4,10 +4,10 @@
 Script to control weather parameters in simulations
 """
 
+import argparse
 import glob
 import os
 import sys
-import argparse
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (

@@ -1,13 +1,14 @@
 import os
 import sys
-import cv2
-from pathlib import Path
-from PIL import Image
 from io import BytesIO
+from pathlib import Path
 from pprint import pprint
+
+import cv2
+from PIL import Image
 from networkx.drawing import nx_agraph, nx_pydot
+
 sys.path.append(str(Path("../../")))
-from roadscene2vec.util import config_parser
 from roadscene2vec.scene_graph.scene_graph import SceneGraph
 from roadscene2vec.scene_graph.extraction.image_extractor import RealExtractor
 from roadscene2vec.data.dataset import RawImageDataset

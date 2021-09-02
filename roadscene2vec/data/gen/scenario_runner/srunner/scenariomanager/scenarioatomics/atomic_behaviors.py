@@ -20,24 +20,20 @@ import math
 import operator
 import os
 import random
-import time
 import subprocess
-
-import numpy as np
-import py_trees
-from py_trees.blackboard import Blackboard
+import time
 
 import carla
+import numpy as np
+import py_trees
+import srunner.tools
 from agents.navigation.basic_agent import BasicAgent, LocalPlanner
 from agents.navigation.local_planner import RoadOption
-
+from py_trees.blackboard import Blackboard
 from srunner.scenariomanager.carla_data_provider import CarlaActorPool, CarlaDataProvider
 from srunner.scenariomanager.timer import GameTime
 from srunner.tools.scenario_helper import detect_lane_obstacle
 from srunner.tools.scenario_helper import generate_target_waypoint_list_multilane
-
-
-import srunner.tools
 
 EPSILON = 0.001
 

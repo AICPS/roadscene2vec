@@ -1,23 +1,21 @@
-import sys, os
+import sys
+
 sys.path.append("../")
 import roadscene2vec
 from roadscene2vec.util.config_parser import configuration
 from roadscene2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
 from roadscene2vec.learning.util.metrics import *
 
-import numpy as np
 import networkx as nx
 import pandas as pd
 from collections import defaultdict 
 from collections import Counter
 from pathlib import Path
-from networkx.drawing.nx_agraph import to_agraph
 from tqdm import tqdm
 import matplotlib
 matplotlib.use("Agg")
 import wandb
 import torch.nn as nn
-import pdb
 from networkx.drawing import nx_pydot
 
 sys.modules['util'] = roadscene2vec.util

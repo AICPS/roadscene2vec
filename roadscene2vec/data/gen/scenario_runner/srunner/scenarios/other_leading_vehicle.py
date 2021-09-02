@@ -15,10 +15,8 @@ collision and follow the leading car in other lane. The scenario ends
 either via a timeout, or if the ego vehicle drives some distance.
 """
 
-import py_trees
-
 import carla
-
+import py_trees
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
                                                                       WaypointFollower,

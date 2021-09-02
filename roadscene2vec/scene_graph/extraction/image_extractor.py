@@ -1,6 +1,10 @@
-import os, sys, pdb
-import cv2
+import os
+import pdb
+import sys
 from pathlib import Path
+
+import cv2
+
 sys.path.append(str(Path("../../")))
 from os.path import isfile, join
 import roadscene2vec.data.dataset as ds

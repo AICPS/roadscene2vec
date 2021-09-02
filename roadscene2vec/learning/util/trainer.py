@@ -1,5 +1,7 @@
-import sys, os, pdb
+import os
+import sys
 from pathlib import Path
+
 sys.path.append(str(Path("../../")))
 import torch
 import torch.optim as optim
@@ -8,7 +10,6 @@ import numpy as np
 import random
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-import wandb
 
 from roadscene2vec.learning.model.cnn_lstm import CNN_LSTM_Classifier
 from roadscene2vec.learning.model.lstm import LSTM_Classifier

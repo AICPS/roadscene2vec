@@ -1,12 +1,9 @@
-import sys, os
+import sys
 from pathlib import Path
 sys.path.append(str(Path("../../")))
-from roadscene2vec.scene_graph.nodes import Node
 #from roadscene2vec.scene_graph.nodes import ObjectNode
 from roadscene2vec.scene_graph.extraction.extractor import Extractor as ex
 from roadscene2vec.scene_graph.scene_graph import SceneGraph
-import pickle as pkl
-import yaml
 import data.dataset as ds
 from tqdm import tqdm
 import ast

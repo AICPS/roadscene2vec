@@ -1,10 +1,11 @@
-import cv2
-import numpy as np
 from pathlib import Path
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from bev import BEV
 
+import cv2
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
+
+from bev import BEV
 
 '''
     BEV Visualizer: run this script to view the bird's eye projected version of your image dataset

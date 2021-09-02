@@ -10,15 +10,13 @@ Summary of useful helper functions for scenarios
 """
 
 import math
-import shapely.geometry
-import shapely.affinity
-
-import numpy as np
 
 import carla
-from agents.tools.misc import vector
+import numpy as np
+import shapely.affinity
+import shapely.geometry
 from agents.navigation.local_planner import RoadOption
-
+from agents.tools.misc import vector
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 
 

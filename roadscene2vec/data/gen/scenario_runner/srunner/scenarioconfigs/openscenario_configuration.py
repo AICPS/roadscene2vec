@@ -16,12 +16,11 @@ import math
 import os
 import xml.etree.ElementTree as ET
 
-import xmlschema
-
 import carla
-
+import xmlschema
 # pylint: disable=line-too-long
-from srunner.scenarioconfigs.scenario_configuration import ActorConfigurationData, ScenarioConfiguration, WeatherConfiguration
+from srunner.scenarioconfigs.scenario_configuration import ActorConfigurationData, ScenarioConfiguration, \
+    WeatherConfiguration
 # pylint: enable=line-too-long
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider  # workaround
 from srunner.tools.openscenario_parser import OpenScenarioParser

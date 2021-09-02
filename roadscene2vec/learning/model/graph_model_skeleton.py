@@ -1,13 +1,10 @@
-import sys, os
+import os
+import sys
+
 sys.path.append(os.path.dirname(sys.path[0]))
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchnlp.nn import Attention
-from torch.nn import Linear, LSTM
-from torch_geometric.nn import RGCNConv, TopKPooling, FastRGCNConv
-from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_pool
-from .rgcn_sag_pooling import RGCNSAGPooling
+from torch_geometric.nn import RGCNConv, FastRGCNConv
 
 '''Model skeleton for creating custom scene graph learning models'''
 class CustomGraphModel(nn.Module):

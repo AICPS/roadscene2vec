@@ -1,9 +1,9 @@
 
 import time
-
 from threading import Thread
-from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
+
 import scene_layout as scene_layout_parser  # This should come from CARLA path
+from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 
 
 def threaded(fn):

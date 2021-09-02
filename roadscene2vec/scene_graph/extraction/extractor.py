@@ -1,6 +1,7 @@
+import sys
 from abc import ABC
-import sys, os
 from pathlib import Path
+
 sys.path.append(str(Path("../../")))
 import roadscene2vec.scene_graph.relation_extractor as r_e
 

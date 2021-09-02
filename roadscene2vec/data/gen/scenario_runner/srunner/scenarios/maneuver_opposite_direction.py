@@ -11,12 +11,11 @@ weather conditions, at a non-junction and encroaches into another
 vehicle traveling in the opposite direction.
 """
 
-from six.moves.queue import Queue   # pylint: disable=relative-import
-
 import math
-import py_trees
-import carla
 
+import carla
+import py_trees
+from six.moves.queue import Queue  # pylint: disable=relative-import
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
                                                                       ActorDestroy,

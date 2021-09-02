@@ -8,10 +8,10 @@ This module provides an example for a Track4 agent to control the ego vehicle vi
 """
 
 
-from threading import Thread
 import math
 import sys
 import time
+from threading import Thread
 
 try:
     import pygame

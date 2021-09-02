@@ -12,9 +12,7 @@ All intersection related scenarios that are part of a route.
 from __future__ import print_function
 
 import py_trees
-
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import TrafficLightManipulator
-
 from srunner.scenariomanager.scenarioatomics.atomic_criteria import CollisionTest, DrivenDistanceTest, MaxVelocityTest
 from srunner.scenariomanager.scenarioatomics.atomic_trigger_conditions import DriveDistance, WaitEndIntersection
 from srunner.scenarios.basic_scenario import BasicScenario

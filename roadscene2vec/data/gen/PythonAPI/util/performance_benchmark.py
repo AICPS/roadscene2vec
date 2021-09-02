@@ -28,7 +28,6 @@ if sys.version_info[0] < 3:
     print('This script is only available for Python 3')
     sys.exit(1)
 
-from tr import tr
 import argparse
 import cpuinfo
 import glob
@@ -40,7 +39,6 @@ import pygame
 import shutil
 import GPUtil
 import threading
-import time
 import logging
 
 try:

@@ -15,34 +15,30 @@ import copy
 import math
 import traceback
 import xml.etree.ElementTree as ET
-import numpy.random as random
-
-import py_trees
 
 import carla
-
+import numpy.random as random
+import py_trees
 from agents.navigation.local_planner import RoadOption
-
 # pylint: disable=line-too-long
-from srunner.scenarioconfigs.scenario_configuration import ScenarioConfiguration, ActorConfigurationData, ActorConfiguration
+from srunner.scenarioconfigs.scenario_configuration import ScenarioConfiguration, ActorConfigurationData, \
+    ActorConfiguration
 # pylint: enable=line-too-long
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool
-from srunner.scenarios.basic_scenario import BasicScenario
-from srunner.scenarios.master_scenario import MasterScenario
 from srunner.scenarios.background_activity import BackgroundActivity
-from srunner.scenarios.trafficlight_scenario import TrafficLightScenario
-from srunner.tools.route_parser import RouteParser, TRIGGER_THRESHOLD, TRIGGER_ANGLE_THRESHOLD
-from srunner.tools.route_manipulation import interpolate_trajectory, clean_route
-from srunner.tools.py_trees_port import oneshot_behavior
-
+from srunner.scenarios.basic_scenario import BasicScenario
 from srunner.scenarios.control_loss import ControlLoss
 from srunner.scenarios.follow_leading_vehicle import FollowLeadingVehicle
-from srunner.scenarios.object_crash_vehicle import DynamicObjectCrossing
-from srunner.scenarios.object_crash_intersection import VehicleTurningRoute
-from srunner.scenarios.other_leading_vehicle import OtherLeadingVehicle
-from srunner.scenarios.maneuver_opposite_direction import ManeuverOppositeDirection
 from srunner.scenarios.junction_crossing_route import SignalJunctionCrossingRoute, NoSignalJunctionCrossingRoute
-
+from srunner.scenarios.maneuver_opposite_direction import ManeuverOppositeDirection
+from srunner.scenarios.master_scenario import MasterScenario
+from srunner.scenarios.object_crash_intersection import VehicleTurningRoute
+from srunner.scenarios.object_crash_vehicle import DynamicObjectCrossing
+from srunner.scenarios.other_leading_vehicle import OtherLeadingVehicle
+from srunner.scenarios.trafficlight_scenario import TrafficLightScenario
+from srunner.tools.py_trees_port import oneshot_behavior
+from srunner.tools.route_manipulation import interpolate_trajectory, clean_route
+from srunner.tools.route_parser import RouteParser, TRIGGER_THRESHOLD, TRIGGER_ANGLE_THRESHOLD
 
 MAX_ALLOWED_RADIUS_SENSOR = 5.0
 SECONDS_GIVEN_PER_METERS = 0.4

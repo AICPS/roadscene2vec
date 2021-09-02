@@ -18,9 +18,9 @@ The ego vehicle adjusts its velocity or changes the lane as well.
 """
 
 import random
-import py_trees
-import carla
 
+import carla
+import py_trees
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
                                                                       StopVehicle,

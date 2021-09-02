@@ -1,4 +1,4 @@
-import sys, os, pdb
+import sys
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 import torch
@@ -8,7 +8,6 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
 from sklearn.model_selection import train_test_split, StratifiedKFold
-import wandb
 from tqdm import tqdm
 from roadscene2vec.learning.util.trainer import Trainer
 from roadscene2vec.data.dataset import SceneGraphDataset

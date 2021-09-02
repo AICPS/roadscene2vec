@@ -10,8 +10,8 @@ Basic scenario class using the OpenSCENARIO definition
 """
 
 import itertools
-import py_trees
 
+import py_trees
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import SetOSCInitSpeed
 from srunner.scenariomanager.timer import GameTime
 from srunner.scenarios.basic_scenario import BasicScenario

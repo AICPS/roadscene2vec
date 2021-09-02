@@ -12,10 +12,9 @@ moving along the road and encounters a cyclist ahead after taking a right or lef
 from __future__ import print_function
 
 import math
-import py_trees
 
 import carla
-
+import py_trees
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
                                                                       ActorDestroy,

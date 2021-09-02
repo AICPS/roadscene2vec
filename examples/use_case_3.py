@@ -1,11 +1,13 @@
-import sys, os
+import os
+import sys
+
 sys.path.append(os.path.dirname(sys.path[0]))
 import roadscene2vec
 from roadscene2vec.util.config_parser import configuration
 import roadscene2vec.scene_graph.extraction.image_extractor as RealEx
 from roadscene2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
-from torch_geometric.data import Data, DataLoader, DataListLoader
-from roadscene2vec.data.dataset import SceneGraphDataset
+from torch_geometric.data import Data, DataLoader
+
 sys.modules['util'] = roadscene2vec.util
 
 

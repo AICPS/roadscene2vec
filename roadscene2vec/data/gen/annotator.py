@@ -1,10 +1,9 @@
-import imageio
 from pathlib import Path
-import sys, os
-from argparse import ArgumentParser
-from tqdm import tqdm
+from pathlib import Path
 from tkinter import *
+
 from PIL import Image, ImageTk
+
 Image.DEBUG = 0
 
 

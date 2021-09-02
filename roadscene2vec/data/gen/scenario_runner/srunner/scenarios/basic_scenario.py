@@ -12,7 +12,6 @@ This module provide the basic class for all user-defined scenarios.
 from __future__ import print_function
 
 import py_trees
-
 import srunner.scenariomanager.scenarioatomics.atomic_trigger_conditions as conditions
 from srunner.scenariomanager.carla_data_provider import CarlaActorPool, CarlaDataProvider
 from srunner.scenariomanager.scenario_manager import Scenario

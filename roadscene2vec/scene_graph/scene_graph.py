@@ -1,15 +1,14 @@
-import matplotlib, math, itertools
+import matplotlib
+
 matplotlib.use("Agg")
 import networkx as nx
-from networkx.drawing.nx_agraph import to_agraph
-import sys, os
+import sys
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 #from roadscene2vec.scene_graph.relation_extractor import Relations, ActorType, RELATION_COLORS 
 from roadscene2vec.scene_graph.nodes import Node
 #from roadscene2vec.scene_graph.nodes import Node
 from networkx.drawing import nx_pydot
-import numpy as np
 import pandas as pd
 import torch
 import math

@@ -21,14 +21,13 @@ base class
 from __future__ import print_function
 
 import operator
-import py_trees
 
-from srunner.scenariomanager.scenarioatomics.atomic_behaviors import calculate_distance
+import py_trees
+import srunner.tools
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
+from srunner.scenariomanager.scenarioatomics.atomic_behaviors import calculate_distance
 from srunner.scenariomanager.timer import GameTime
 from srunner.tools.scenario_helper import get_distance_along_route
-
-import srunner.tools
 
 EPSILON = 0.001
 

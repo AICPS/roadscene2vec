@@ -15,19 +15,20 @@ and finally triggers the scenario execution.
 
 from __future__ import print_function
 
-import traceback
 import argparse
-from argparse import RawTextHelpFormatter
-from datetime import datetime
-from distutils.version import LooseVersion
+import glob
 import importlib
 import inspect
 import os
 import signal
 import sys
 import time
+import traceback
+from argparse import RawTextHelpFormatter
+from datetime import datetime
+from distutils.version import LooseVersion
+
 import pkg_resources
-import glob
 
 CARLA_API_PATH = r'C:\CARLA_0.9.8\PythonAPI' 
 CARLA_ROOT_PATH = r'C:\CARLA_0.9.8\PythonAPI\carla' 
@@ -61,18 +62,6 @@ from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, Carla
 from srunner.scenariomanager.scenario_manager import ScenarioManager
 # pylint: disable=unused-import
 # For the following includes the pylint check is disabled, as these are accessed via globals()
-from srunner.scenarios.control_loss import ControlLoss
-from srunner.scenarios.follow_leading_vehicle import FollowLeadingVehicle, FollowLeadingVehicleWithObstacle
-from srunner.scenarios.maneuver_opposite_direction import ManeuverOppositeDirection
-from srunner.scenarios.no_signal_junction_crossing import NoSignalJunctionCrossing
-from srunner.scenarios.object_crash_intersection import VehicleTurningRight, VehicleTurningLeft
-from srunner.scenarios.object_crash_vehicle import StationaryObjectCrossing, DynamicObjectCrossing
-from srunner.scenarios.opposite_vehicle_taking_priority import OppositeVehicleRunningRedLight
-from srunner.scenarios.other_leading_vehicle import OtherLeadingVehicle
-from srunner.scenarios.signalized_junction_left_turn import SignalizedJunctionLeftTurn
-from srunner.scenarios.signalized_junction_right_turn import SignalizedJunctionRightTurn
-from srunner.scenarios.change_lane import ChangeLane
-from srunner.scenarios.cut_in import CutIn
 # pylint: enable=unused-import
 from srunner.scenarios.open_scenario import OpenScenario
 from srunner.scenarios.route_scenario import RouteScenario

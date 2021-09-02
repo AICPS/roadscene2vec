@@ -1,15 +1,12 @@
-import unittest
 import os
+import unittest
 
+import carla
 import srunner.challenge.utils.route_configuration_parser as parser
 from srunner.challenge.challenge_evaluator_routes import ChallengeEvaluator
-
-from srunner.scenariomanager.carla_data_provider import CarlaActorPool
-
-from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 from srunner.challenge.utils.route_manipulation import interpolate_trajectory
-import carla
-
+from srunner.scenariomanager.carla_data_provider import CarlaActorPool
+from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 
 """
 The idea of this test is to check if sampling is able to sample random sequencial images

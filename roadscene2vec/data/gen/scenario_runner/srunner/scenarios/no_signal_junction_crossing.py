@@ -11,9 +11,8 @@ The hero vehicle is passing through a junction without traffic lights
 And encounters another vehicle passing across the junction.
 """
 
-import py_trees
 import carla
-
+import py_trees
 from srunner.scenariomanager.carla_data_provider import CarlaActorPool
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
                                                                       ActorDestroy,

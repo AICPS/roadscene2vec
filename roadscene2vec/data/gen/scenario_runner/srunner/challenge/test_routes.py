@@ -11,21 +11,17 @@ CARLA Challenge Evaluator Routes
 Provisional code to evaluate Autonomous Agents for the CARLA Autonomous Driving challenge
 """
 from __future__ import print_function
-import argparse
-from argparse import RawTextHelpFormatter
-import sys
-import os
 
+import argparse
+import os
+import sys
+from argparse import RawTextHelpFormatter
 
 import carla
 import srunner.challenge.utils.route_configuration_parser as parser
-
-
-from srunner.scenariomanager.carla_data_provider import CarlaActorPool, CarlaDataProvider
-
-
 # We import the challenge evaluator here
 from srunner.challenge.challenge_evaluator_routes import ChallengeEvaluator
+from srunner.scenariomanager.carla_data_provider import CarlaActorPool, CarlaDataProvider
 
 
 def create_configuration_scenario(scenario_desc, scenario_type):

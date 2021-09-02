@@ -1,9 +1,16 @@
-import sys, random, math, json, carla, py_trees
+import carla
+import json
+import math
+import py_trees
+import random
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+import imageio
+
 import sensors
 from sensors import get_actor_attributes, get_vehicle_attributes
-from pathlib import Path
-from collections import defaultdict
-import imageio
 
 SRUNNER_PATH = r'./scenario_runner'
 sys.path.append(SRUNNER_PATH)

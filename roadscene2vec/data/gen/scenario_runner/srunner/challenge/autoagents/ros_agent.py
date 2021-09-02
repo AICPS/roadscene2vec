@@ -12,29 +12,29 @@ This module provides a ROS autonomous agent interface to control the ego vehicle
 
 import math
 import os
-import subprocess
 import signal
+import subprocess
 import threading
 import time
 
-import numpy
-
 import carla
-
+import numpy
 import rospy
+import tf
+# pylint: disable=line-too-long
+from carla_msgs.msg import CarlaEgoVehicleStatus, CarlaEgoVehicleInfo, CarlaEgoVehicleInfoWheel, CarlaEgoVehicleControl, \
+    CarlaWorldInfo
 from cv_bridge import CvBridge
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry, Path
 from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import Image, PointCloud2, NavSatFix, NavSatStatus, CameraInfo
 from sensor_msgs.point_cloud2 import create_cloud_xyz32
-from std_msgs.msg import Header, String
-import tf
-# pylint: disable=line-too-long
-from carla_msgs.msg import CarlaEgoVehicleStatus, CarlaEgoVehicleInfo, CarlaEgoVehicleInfoWheel, CarlaEgoVehicleControl, CarlaWorldInfo
-# pylint: enable=line-too-long
-
 from srunner.challenge.autoagents.autonomous_agent import AutonomousAgent, Track
+from std_msgs.msg import Header, String
+
+
+# pylint: enable=line-too-long
 
 
 class RosAgent(AutonomousAgent):

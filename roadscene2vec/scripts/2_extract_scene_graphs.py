@@ -1,4 +1,6 @@
-import sys, os
+import os
+import sys
+
 sys.path.append(os.path.dirname(sys.path[0]))
 import scene_graph.extraction.carla_extractor as CarlaEx
 import scene_graph.extraction.image_extractor as RealEx

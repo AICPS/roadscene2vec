@@ -10,14 +10,14 @@ Wrapper for autonomous agents required for tracking and checking of used sensors
 """
 
 from __future__ import print_function
+
 import math
 import os
 
 import carla
-
+from srunner.challenge.autoagents.autonomous_agent import Track
 from srunner.challenge.envs.scene_layout_sensors import SceneLayoutReader, ObjectFinder
 from srunner.challenge.envs.sensor_interface import CallBack, CANBusSensor, HDMapReader
-from srunner.challenge.autoagents.autonomous_agent import Track
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 
 MAX_ALLOWED_RADIUS_SENSOR = 5.0

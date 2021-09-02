@@ -1,4 +1,4 @@
-import sys, os
+import sys
 from pathlib import Path
 sys.path.append(str(Path("../../")))
 from abc import ABC

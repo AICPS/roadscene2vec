@@ -9,12 +9,10 @@ Collection of traffic scenarios where the ego vehicle (hero)
 is making a left turn
 """
 
-from six.moves.queue import Queue  # pylint: disable=relative-import
-
-import py_trees
 import carla
+import py_trees
 from agents.navigation.local_planner import RoadOption
-
+from six.moves.queue import Queue  # pylint: disable=relative-import
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
                                                                       ActorDestroy,

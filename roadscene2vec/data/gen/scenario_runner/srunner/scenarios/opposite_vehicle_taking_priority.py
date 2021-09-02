@@ -11,12 +11,12 @@ priority, e.g. by running a red traffic light.
 """
 
 from __future__ import print_function
+
 import sys
 
-import py_trees
 import carla
+import py_trees
 from agents.navigation.local_planner import RoadOption
-
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
                                                                       ActorDestroy,

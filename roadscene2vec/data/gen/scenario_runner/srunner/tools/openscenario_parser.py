@@ -9,13 +9,12 @@
 This module provides a parser for scenario configuration files based on OpenSCENARIO
 """
 
-from distutils.util import strtobool
 import math
 import operator
+from distutils.util import strtobool
 
-import py_trees
 import carla
-
+import py_trees
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (TrafficLightStateSetter,
                                                                       ActorTransformSetterToOSCPosition,
@@ -29,19 +28,7 @@ from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (TrafficLig
                                                                       WaypointFollower)
 # pylint: disable=unused-import
 # For the following includes the pylint check is disabled, as these are accessed via globals()
-from srunner.scenariomanager.scenarioatomics.atomic_criteria import (CollisionTest,
-                                                                     MaxVelocityTest,
-                                                                     DrivenDistanceTest,
-                                                                     AverageVelocityTest,
-                                                                     KeepLaneTest,
-                                                                     ReachedRegionTest,
-                                                                     OnSidewalkTest,
-                                                                     WrongLaneTest,
-                                                                     InRadiusRegionTest,
-                                                                     InRouteTest,
-                                                                     RouteCompletionTest,
-                                                                     RunningRedLightTest,
-                                                                     RunningStopTest)
+from srunner.scenariomanager.scenarioatomics.atomic_criteria import (CollisionTest)
 # pylint: enable=unused-import
 from srunner.scenariomanager.scenarioatomics.atomic_trigger_conditions import (InTriggerDistanceToVehicle,
                                                                                InTriggerDistanceToOSCPosition,

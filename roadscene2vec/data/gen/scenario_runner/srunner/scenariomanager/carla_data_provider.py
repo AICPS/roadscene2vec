@@ -16,9 +16,9 @@ import math
 import random
 import re
 from threading import Thread
-from six import iteritems
 
 import carla
+from six import iteritems
 
 
 def calculate_velocity(actor):

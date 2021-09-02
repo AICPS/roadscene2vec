@@ -8,7 +8,10 @@
 
 """Spawn NPCs into the simulation"""
 
-import glob, os, sys, time
+import glob
+import os
+import sys
+import time
 
 CARLA_API_PATH = r'.\PythonAPI' 
 CARLA_ROOT_PATH = r'.\PythonAPI\carla' 
@@ -36,7 +39,6 @@ import carla
 
 import argparse
 import logging
-import random
 
 from lane_change_recorder import *
 

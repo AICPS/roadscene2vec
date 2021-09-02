@@ -8,6 +8,7 @@ Module use to parse all the route and scenario configuration parameters .
 """
 
 from __future__ import print_function
+
 import json
 import math
 import xml.etree.ElementTree as ET

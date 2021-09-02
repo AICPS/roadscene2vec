@@ -11,53 +11,49 @@ CARLA Challenge Evaluator Routes
 Provisional code to evaluate Autonomous Agents for the CARLA Autonomous Driving challenge
 """
 from __future__ import print_function
+
 import argparse
-from argparse import RawTextHelpFormatter
 import copy
 import datetime
 import importlib
-import math
-import sys
-import os
 import json
+import math
+import os
 import random
 import re
-import signal
-import subprocess
+import sys
 import time
 import traceback
 import xml.etree.ElementTree as ET
-
-import py_trees
+from argparse import RawTextHelpFormatter
 
 import carla
-
-from agents.navigation.local_planner import RoadOption
-
+import py_trees
 import srunner.challenge.utils.route_configuration_parser as parser
+from agents.navigation.local_planner import RoadOption
+from srunner.challenge.autoagents.autonomous_agent import Track
 from srunner.challenge.envs.scene_layout_sensors import SceneLayoutReader, ObjectFinder
 from srunner.challenge.envs.sensor_interface import CallBack, CANBusSensor, HDMapReader
-from srunner.challenge.autoagents.autonomous_agent import Track
-from srunner.scenariomanager.timer import GameTime
+from srunner.challenge.utils.route_configuration_parser import TRIGGER_THRESHOLD, TRIGGER_ANGLE_THRESHOLD
+from srunner.challenge.utils.route_manipulation import interpolate_trajectory, clean_route
+from srunner.scenarioconfigs.scenario_configuration import ActorConfiguration, ScenarioConfiguration, \
+    ActorConfigurationData
 from srunner.scenariomanager.carla_data_provider import CarlaActorPool, CarlaDataProvider
-from srunner.scenarios.control_loss import ControlLoss
+from srunner.scenariomanager.timer import GameTime
+from srunner.scenariomanager.traffic_events import TrafficEventType
 from srunner.scenarios.background_activity import BackgroundActivity
+from srunner.scenarios.control_loss import ControlLoss
 from srunner.scenarios.follow_leading_vehicle import FollowLeadingVehicle
-from srunner.scenarios.object_crash_vehicle import DynamicObjectCrossing
-from srunner.scenarios.object_crash_intersection import VehicleTurningRight, VehicleTurningLeft
-from srunner.scenarios.other_leading_vehicle import OtherLeadingVehicle
-from srunner.scenarios.opposite_vehicle_taking_priority import OppositeVehicleRunningRedLight
-from srunner.scenarios.signalized_junction_left_turn import SignalizedJunctionLeftTurn
-from srunner.scenarios.signalized_junction_right_turn import SignalizedJunctionRightTurn
-from srunner.scenarios.no_signal_junction_crossing import NoSignalJunctionCrossing
 from srunner.scenarios.maneuver_opposite_direction import ManeuverOppositeDirection
 from srunner.scenarios.master_scenario import MasterScenario
+from srunner.scenarios.no_signal_junction_crossing import NoSignalJunctionCrossing
+from srunner.scenarios.object_crash_intersection import VehicleTurningRight, VehicleTurningLeft
+from srunner.scenarios.object_crash_vehicle import DynamicObjectCrossing
+from srunner.scenarios.opposite_vehicle_taking_priority import OppositeVehicleRunningRedLight
+from srunner.scenarios.other_leading_vehicle import OtherLeadingVehicle
+from srunner.scenarios.signalized_junction_left_turn import SignalizedJunctionLeftTurn
+from srunner.scenarios.signalized_junction_right_turn import SignalizedJunctionRightTurn
 from srunner.scenarios.trafficlight_scenario import TrafficLightScenario
-from srunner.challenge.utils.route_configuration_parser import TRIGGER_THRESHOLD, TRIGGER_ANGLE_THRESHOLD
-from srunner.scenarioconfigs.scenario_configuration import ActorConfiguration, ScenarioConfiguration, ActorConfigurationData
-from srunner.scenariomanager.traffic_events import TrafficEventType
-from srunner.challenge.utils.route_manipulation import interpolate_trajectory, clean_route
-
 
 number_class_translation = {
 

@@ -1,12 +1,12 @@
-from enum import Enum
-import fcntl
 import logging
-import os
-import psutil
 import random
 import string
 import subprocess
 import time
+from enum import Enum
+
+import psutil
+
 
 class Track(Enum):
     """

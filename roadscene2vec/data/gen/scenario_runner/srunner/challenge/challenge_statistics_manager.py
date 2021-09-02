@@ -11,11 +11,10 @@ This module contains a statistics manager for the CARLA AD challenge
 
 from __future__ import print_function
 
-import os
 import json
+import os
 
 import py_trees
-
 from srunner.scenariomanager.traffic_events import TrafficEventType
 
 PENALTY_COLLISION_STATIC = 6

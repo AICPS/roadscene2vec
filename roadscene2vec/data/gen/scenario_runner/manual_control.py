@@ -35,14 +35,14 @@ Use ARROWS or WASD keys for control.
 
 from __future__ import print_function
 
+import glob
+import os
+import sys
+
 # ==============================================================================
 # -- imports -------------------------------------------------------------------
 # ==============================================================================
-
-import sys
-import glob
-import os
-CARLA_API_PATH = r'C:\CARLA_0.9.8\PythonAPI' 
+CARLA_API_PATH = r'C:\CARLA_0.9.8\PythonAPI'
 CARLA_ROOT_PATH = r'C:\CARLA_0.9.8\PythonAPI\carla' 
 CARLA_DIST_PATH = r'C:\CARLA_0.9.8\PythonAPI\carla\dist'
 

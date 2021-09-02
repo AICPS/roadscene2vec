@@ -13,8 +13,8 @@ import glob
 import os
 import xml.etree.ElementTree as ET
 
-from srunner.scenarioconfigs.scenario_configuration import ScenarioConfiguration, ActorConfiguration
 from srunner.scenarioconfigs.route_scenario_configuration import RouteConfiguration, TargetConfiguration
+from srunner.scenarioconfigs.scenario_configuration import ScenarioConfiguration, ActorConfiguration
 
 
 class ScenarioConfigurationParser(object):

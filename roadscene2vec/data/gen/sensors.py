@@ -1,13 +1,13 @@
-import carla
-
-from carla import ColorConverter as cc
-
 import math
 import re
 import weakref
 from collections import defaultdict
+
+import carla
 import numpy as np
 import pygame
+from carla import ColorConverter as cc
+
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------

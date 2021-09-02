@@ -49,15 +49,13 @@ Use ARROWS or WASD keys for control.
 
 from __future__ import print_function
 
+import glob
+import os
+import sys
 
 # ==============================================================================
 # -- find carla module ---------------------------------------------------------
 # ==============================================================================
-
-
-import glob
-import os
-import sys
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (

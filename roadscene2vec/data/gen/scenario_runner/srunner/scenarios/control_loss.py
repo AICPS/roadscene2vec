@@ -13,9 +13,9 @@ regains control and corrects it's course.
 """
 
 import random
-import py_trees
-import carla
 
+import carla
+import py_trees
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import ChangeNoiseParameters, ActorTransformSetter
 from srunner.scenariomanager.scenarioatomics.atomic_criteria import CollisionTest

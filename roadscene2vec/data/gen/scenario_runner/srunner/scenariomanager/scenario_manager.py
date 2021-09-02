@@ -11,11 +11,11 @@ These must not be modified and are for reference only!
 """
 
 from __future__ import print_function
+
 import sys
 import time
 
 import py_trees
-
 from srunner.challenge.autoagents.agent_wrapper import AgentWrapper
 from srunner.challenge.challenge_statistics_manager import ChallengeStatisticsManager
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider, CarlaActorPool

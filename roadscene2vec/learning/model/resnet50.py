@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
-import pdb
 
 '''ResNet-50-based CNN classifier. Uses pre-trained ResNet-50 model weights to initialize the model.'''
 class ResNet50_Classifier(nn.Module):

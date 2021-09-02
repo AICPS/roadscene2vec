@@ -1,20 +1,12 @@
-import unittest
 import os
+import unittest
 
-import srunner.challenge.utils.route_configuration_parser as parser
-from srunner.challenge.challenge_evaluator_routes import ChallengeEvaluator, convert_json_to_transform
-
-from srunner.scenariomanager.carla_data_provider import CarlaActorPool
-
-from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
-
-
-from srunner.challenge.utils.route_manipulation import interpolate_trajectory
-
-import traceback
 import carla
-
-
+import srunner.challenge.utils.route_configuration_parser as parser
+from srunner.challenge.challenge_evaluator_routes import ChallengeEvaluator
+from srunner.challenge.utils.route_manipulation import interpolate_trajectory
+from srunner.scenariomanager.carla_data_provider import CarlaActorPool
+from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 
 
 def convert_waypoint_float(waypoint):

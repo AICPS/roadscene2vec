@@ -1,8 +1,12 @@
-from enum import Enum
 import math
 import itertools
-import sys, os
+import sys
 from pathlib import Path
+import itertools
+import math
+import sys
+from pathlib import Path
+
 sys.path.append(str(Path("../../")))
 from roadscene2vec.scene_graph.nodes import Node
 #from roadscene2vec.scene_graph.nodes import ObjectNode

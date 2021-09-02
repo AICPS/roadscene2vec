@@ -1,6 +1,7 @@
-import sys, os
+import os
+import sys
+
 sys.path.append(os.path.dirname(sys.path[0]))
-import roadscene2vec
 from roadscene2vec.util.config_parser import configuration
 from roadscene2vec.scene_graph.extraction import image_extractor as RealEx
 from roadscene2vec.util.visualizer import visualize

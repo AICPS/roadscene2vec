@@ -15,14 +15,13 @@ actors or environmental parameters. Hence, a termination is not required.
 The atomic criteria are implemented with py_trees.
 """
 
-import weakref
 import math
+import weakref
+
+import carla
 import numpy as np
 import py_trees
 import shapely
-
-import carla
-
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 from srunner.scenariomanager.timer import GameTime
 from srunner.scenariomanager.traffic_events import TrafficEvent, TrafficEventType

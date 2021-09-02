@@ -1,14 +1,12 @@
 import copy
 import logging
-import numpy as np
 import os
 import time
-from threading import Thread
 
 import carla
-
-from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
+import numpy as np
 from srunner.challenge.envs.scene_layout_sensors import SceneLayoutMeasurement, ObjectMeasurements, threaded
+from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 
 
 class HDMapMeasurement(object):
