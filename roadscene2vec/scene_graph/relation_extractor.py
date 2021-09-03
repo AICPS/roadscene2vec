@@ -211,9 +211,9 @@ class RelationExtractor:
         
         if self.conf.dataset_type == "carla":
             if actor2.attr['lane_idx'] < actor1.attr['lane_idx']: # actor2 to the left of actor1 
-                relation_list.append([actor1, "toLeftOf", actor2])
+                relation_list.append([actor2, "toLeftOf", actor1])
             elif actor2.attr['lane_idx'] > actor1.attr['lane_idx']: # actor2 to the right of actor1 
-                relation_list.append([actor1, "toRightOf", actor2])
+                relation_list.append([actor2, "toRightOf", actor1])
                
         elif self.conf.dataset_type == "image":  
 #            if abs(actor2.attr['location_x'] - actor1.attr['location_x']) <= self.CENTER_LANE_THRESHOLD:
