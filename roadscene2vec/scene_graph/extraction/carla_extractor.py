@@ -4,7 +4,7 @@ sys.path.append(str(Path("../../")))
 #from roadscene2vec.scene_graph.nodes import ObjectNode
 from roadscene2vec.scene_graph.extraction.extractor import Extractor as ex
 from roadscene2vec.scene_graph.scene_graph import SceneGraph
-import data.dataset as ds
+import roadscene2vec.data.dataset as ds
 from tqdm import tqdm
 import ast
 from glob import glob
@@ -82,7 +82,7 @@ class CarlaExtractor(ex):
                       print("We have problem creating the Carla scenegraphs")
                       print(e)
                       traceback.print_exc()
-                  import pdb; pdb.set_trace()
+                  
         self.dataset.scene_graphs = sg_extracted
 
      

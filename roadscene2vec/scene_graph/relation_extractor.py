@@ -177,6 +177,9 @@ class RelationExtractor:
             x1, y1 = math.cos(math.radians(actor1.attr['rotation'][0])), math.sin(math.radians(actor1.attr['rotation'][0]))
             x2, y2 = actor2.attr['location'][0] - actor1.attr['location'][0], actor2.attr['location'][1] - actor1.attr['location'][1]
             x2, y2 = x2 / math.sqrt(x2**2+y2**2), y2 / math.sqrt(x2**2+y2**2)
+            
+            degree =  math.degrees(math.atan2(y2, x2)) - \
+                 math.degrees(math.atan2(y1, x1))
         
         elif self.conf.dataset_type == "image":
             x1 = math.cos(math.radians(0)) 
@@ -186,17 +189,19 @@ class RelationExtractor:
             x2 /= math.sqrt(x2**2 + y2**2)
             y2 /= math.sqrt(x2**2 + y2**2)
       
-        degree = math.degrees(math.atan2(y1, x1)) - \
+            degree = math.degrees(math.atan2(y1, x1)) - \
                  math.degrees(math.atan2(y2, x2))
         
         
-        degree %= 360
-         
         if degree < 0: 
             degree += 360
+        
+        degree %= 360
+         
+
 #         if degree < 0:
 #             degree = 0
-            
+             
         for direction_rel in self.directional_rels:
             list_of_ranges = direction_rel[1]
             for ranges in list_of_ranges:
