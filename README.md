@@ -6,11 +6,13 @@ The goal of **roadscene2vec** is to enable research into the applications and ca
 If you find **roadscene2vec** useful for your work please cite our library as follows:
 
 ```
-@misc{roadscene2vec,
-title={roadscene2vec: A Tool for Extracting and Embedding Road Scene-Graphs},
-author={Malawade, Arnav Vaibhav and Yu, Shih-Yuan and Hsu, Brandon and Kaeley, Harsimrat and Karra, Anurag and Al Faruque, Mohammad Abdullah},
-year={2021},
-url={https://github.com/AICPS/roadscene2vec}
+@misc{malawade2021roadscene2vec,
+      title={roadscene2vec: A Tool for Extracting and Embedding Road Scene-Graphs}, 
+      author={Arnav Vaibhav Malawade and Shih-Yuan Yu and Brandon Hsu and Harsimrat Kaeley and Anurag Karra and Mohammad Abdullah Al Faruque},
+      year={2021},
+      eprint={2109.01183},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
 }
 ```
 
