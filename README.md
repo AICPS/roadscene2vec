@@ -2,6 +2,7 @@
 ## Description
 **roadscene2vec** is an open-source tool for extracting and embedding road scene-graphs. 
 The goal of **roadscene2vec** is to enable research into the applications and capabilities of road scene-graphs by providing tools for generating scene-graphs and a framework for running graph-learning algorithms on them. We provide tools and utilities for scene graph extraction, dataset processing, graph learning, and results analysis.
+For additional details on our library, please reference our research paper located here: https://arxiv.org/abs/2109.01183
 
 If you find **roadscene2vec** useful for your work please cite our library as follows:
 
