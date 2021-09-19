@@ -21,7 +21,6 @@ from tqdm import tqdm
 
 '''RealExtractor initializes relational settings and creates an ImageSceneGraphSequenceGenerator object to extract scene graphs using raw image data.'''
 class RealExtractor(ex):
-    #TODO: RealPreprocessor preprocessor 
     def __init__(self, config):
         super(RealExtractor, self).__init__(config) 
 

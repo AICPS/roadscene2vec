@@ -27,7 +27,7 @@ class CarlaExtractor(ex):
         self.dataset.folder_names = [path.stem for path in all_sequence_dirs]
         sg_extracted = {}
         for path in tqdm(all_sequence_dirs):
-              seq = int(path.stem.split('_')[0])
+              seq = int(path.stem.split('_')[0])#TODO: we cannot assume that our users will have their data in this format.
               self.dataset.action_types[seq] = path.stem.split('_')[1]
               label_path = (path/"label.txt").resolve()
               metadata_path = (path/"metadata.txt").resolve()

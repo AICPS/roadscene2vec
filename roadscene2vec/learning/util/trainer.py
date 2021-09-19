@@ -20,7 +20,7 @@ from roadscene2vec.learning.model.resnet50_lstm import ResNet50_LSTM_Classifier
 from roadscene2vec.learning.model.resnet50 import ResNet50_Classifier
 
 
-'''TODO: add class description'''
+'''Class implementing basic trainer functionality such as model building, saving, and loading.'''
 class Trainer:
 
     def __init__(self, config, wandb_a = None):

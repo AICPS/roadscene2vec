@@ -14,10 +14,10 @@ from sklearn.utils import resample
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from roadscene2vec.learning.util.metrics import get_metrics, log_im_wandb, log_wandb_categories
 
-'''TODO: add class description'''
+'''Class implementing image based model training including support for splitting input dataset, cross-validation functionality, model inference metrics, and model evaluation.'''
 class Image_Trainer(Trainer):
-
     def __init__(self, config, wandb_a = None):
+        '''Class object initialization requires Config Parser object.'''
         super(Image_Trainer, self).__init__(config, wandb_a)
 
     def split_dataset(self): #this is init_dataset from multimodal
