@@ -88,9 +88,12 @@ https://detectron2.readthedocs.io/en/latest/tutorials/install.html
 
 ---
 ## Usage Examples
-### Setup
+### Setup and Dataset
 Before running any of the use cases, please download the use_case_data directory from the following link and place it into the examples directory.
 https://drive.google.com/drive/folders/1zjoixga_S8Ba7khCLBos6nhEhe1UWnv7?usp=sharing
+
+Our raw CARLA dataset can also be downloaded from IEEE Dataport (1043.zip): https://ieee-dataport.org/documents/scenegraph-risk-assessment-dataset
+
 
 ### Use Case 1: Converting an Ego-Centric Observation (Image) into a Scene-Graph
 In this use case, we demonstrate how to use roadscene2vec to extract road scenegraphs from a driving clip. In the sample script examples/use_case_1.py, roadscene2vec first takes in the use_case_1_scenegraph_extraction_config.yaml config file. This file specifies the location of the data from which to extract scenegraphs from along with the various relations and actors to include in each scenegraph . A RealScenegraphExtraction object is created using the use_case_1_scenegraph_extraction_config.yaml file. This RealScenegraphExtraction then extracts scenegraphs and saves them as a SceneGraphDataset object. 
