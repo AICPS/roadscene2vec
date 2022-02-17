@@ -2,25 +2,42 @@
 ## Description
 **roadscene2vec** is an open-source tool for extracting and embedding road scene-graphs. 
 The goal of **roadscene2vec** is to enable research into the applications and capabilities of road scene-graphs by providing tools for generating scene-graphs and a framework for running graph-learning algorithms on them. We provide tools and utilities for scene graph extraction, dataset processing, graph learning, and results analysis.
-For additional details on our library, please reference our research paper located here: https://arxiv.org/abs/2109.01183
+For additional details on our library, please reference our research paper located here: 
+
+https://www.sciencedirect.com/science/article/pii/S0950705122000739 (arXiv: https://arxiv.org/abs/2109.01183)
 
 If you find **roadscene2vec** useful for your work please cite our library as follows:
 
 ```
-@misc{malawade2021roadscene2vec,
-      title={roadscene2vec: A Tool for Extracting and Embedding Road Scene-Graphs}, 
-      author={Arnav Vaibhav Malawade and Shih-Yuan Yu and Brandon Hsu and Harsimrat Kaeley and Anurag Karra and Mohammad Abdullah Al Faruque},
-      year={2021},
-      eprint={2109.01183},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+@article{malawade2022roadscene2vec,
+title = {roadscene2vec: A tool for extracting and embedding road scene-graphs},
+journal = {Knowledge-Based Systems},
+volume = {242},
+pages = {108245},
+year = {2022},
+issn = {0950-7051},
+doi = {https://doi.org/10.1016/j.knosys.2022.108245},
+url = {https://www.sciencedirect.com/science/article/pii/S0950705122000739},
+author = {Arnav Vaibhav Malawade and Shih-Yuan Yu and Brandon Hsu and Harsimrat Kaeley and Anurag Karra and Mohammad Abdullah {Al Faruque}},
 }
 ```
 
-Our other related work and associated repository:
-"Scene-Graph Augmented Data-Driven Risk Assessment of Autonomous Vehicle Decisions" 
+
+**Our other related works and associated repositories:**
+
+"_Scene-Graph Augmented Data-Driven Risk Assessment of Autonomous Vehicle Decisions_" (IEEE Transactions on Intellegent Transportation Systems 2021)
+
 https://arxiv.org/abs/2009.06435 
+
 https://github.com/louisccc/sg-risk-assessment
+
+
+"_Spatio-Temporal Scene-Graph Embedding for Autonomous Vehicle Collision Prediction_" (IEEE IoT Journal 2022)
+
+https://arxiv.org/abs/2111.06123
+
+https://github.com/AICPS/sg-collision-prediction
+
 
 ---
 ## General Python Setup
