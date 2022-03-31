@@ -101,7 +101,7 @@ class SceneGraph:
             # due to bev warp, vehicles far from horizon get warped behind car, thus we will default them as far from vehcile
             if attr['location_y'] > self.egoNode.attr['location_y']:
                 # should store this in a list dictating the filename of the scene
-                print('BEV warped to behind vehcile')
+                print('BEV warped to behind vehicle')
                 attr['location_y'] = self.egoNode.attr['location_y'] - self.relation_extractor.proximity_rels[-1][1] #assuming the last proximity threshold will be the most vague
 
             attr['rel_location_x'] = attr['location_x'] - self.egoNode.attr['location_x']           # x position relative to ego (neg left, pos right)
