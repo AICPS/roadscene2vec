@@ -2,7 +2,7 @@
 dataset_type: 'image' #Type of data from which to extract scenegraphs from. Options: 'image', 'carla'
 location_data:
     input_path: '/home/louisccc/NAS/louisccc/av/honda_data/filtered_clips/lanechange/' #input path to main directory containing driving sequence subdirectories from which to extract scenegraphs
-    data_save_path: '/home/harsimrat/av_data/entire_lanechange_after_refactoring.pkl'#path to save extracted scenegraph dataset
+    data_save_path: '/home/harsimrat/av_data/entire_lanechange_after_refactoring.pkl' #path to save extracted scenegraph dataset
 
 relation_extraction_settings:
   frames_limit: null #extract scenegraphs for 1 frame every n frames per sequence subdirectory. currently only functional for image based extraction. Options:  null(None), Integer n
@@ -30,4 +30,4 @@ relation_extraction_settings:
 
 
 image_settings: #path to bev calibration data. only for use with real image scenegraph extraction
-    BEV_PATH: '/home/harsimrat/sg2vec/roadscene2vec/scene_graph/extraction/bev/bev.json'
+    BEV_PATH: 'roadscene2vec/data/bev/bev.json'
