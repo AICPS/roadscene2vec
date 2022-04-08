@@ -30,4 +30,4 @@ relation_extraction_settings:
 
 
 image_settings: #path to bev calibration data. only for use with real image scenegraph extraction
-    BEV_PATH: 'roadscene2vec/data/bev/bev.json'
+    BEV_PATH: 'roadscene2vec/scene_graph/extraction/bev/bev.json'
