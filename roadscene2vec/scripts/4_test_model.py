@@ -10,7 +10,7 @@ from util.config_parser import configuration
 import wandb
 import torch.nn as nn
 
-#python 4_test_model.py --yaml_path C:\users\harsi\research\roadscene2vec\roadscene2vec\config\learning_config.yaml  
+#python 4_test_model.py --yaml_path /media/aicps/home/harsimrat/roadscene2vec/roadscene2vec/config/graph_learning_config.yaml 
 
 def test_Trainer(learning_config):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''

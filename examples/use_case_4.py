@@ -2,11 +2,9 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(sys.path[0]))
-# import roadscene2vec.data.real_preprocessor as ip
 from roadscene2vec.util.config_parser import configuration
-# import roadscene2vec.scene_graph.extraction.image_extractor as RealEx
 import roadscene2vec
-from roadscene2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
+from scenegraph_trainer import Scenegraph_Trainer
 
 sys.modules['util'] = roadscene2vec.util
 import torch.nn as nn

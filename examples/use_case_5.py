@@ -3,7 +3,7 @@ import sys
 sys.path.append("../")
 import roadscene2vec
 from roadscene2vec.util.config_parser import configuration
-from roadscene2vec.learning.util.scenegraph_trainer import Scenegraph_Trainer
+from scenegraph_trainer import Scenegraph_Trainer
 from roadscene2vec.learning.util.metrics import *
 
 import networkx as nx
