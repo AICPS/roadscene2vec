@@ -34,8 +34,8 @@ class Trainer:
                 for config_arg in self.config.args[section]:
                     self.wandb_config[section+'.'+config_arg] = self.config.args[section][config_arg]
         else:
-            self.log = False             
-        if self.config.training_configuration["seed"] != None: 
+            self.log = False            
+        if self.config.training_configuration["seed"] != None:
             self.config.seed = self.config.training_configuration["seed"]
             np.random.seed(self.config.seed)
             torch.manual_seed(self.config.seed)
@@ -43,7 +43,7 @@ class Trainer:
             self.config.seed = random.randint(0,2**32) #default value
             np.random.seed(self.config.seed)
             torch.manual_seed(self.config.seed)
-            
+           
         self.toGPU = lambda x, dtype: torch.as_tensor(x, dtype=dtype, device=self.config.model_configuration['device'])
         self.initialize_best_metrics()
 
@@ -80,28 +80,26 @@ class Trainer:
         elif self.config.model_configuration["model"]  == "lstm":
             self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width),'lstm', self.config).to(self.config.model_configuration["device"])        
         elif self.config.model_configuration["model"]  == "gru":
-            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), 'gru', self.config).to(self.config.model_configuration["device"]) 
+            self.model = LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), 'gru', self.config).to(self.config.model_configuration["device"])
         elif self.config.model_configuration["model"] == "resnet50_lstm":
-            self.model = ResNet50_LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.model_configuration["device"]) 
+            self.model = ResNet50_LSTM_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.model_configuration["device"])
         elif self.config.model_configuration["model"] == "resnet50":
-            self.model = ResNet50_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.model_configuration["device"]) 
+            self.model = ResNet50_Classifier((self.config.training_configuration['batch_size'], self.frame_limit,self.color_channels, self.im_height, self.im_width), self.config).to(self.config.model_configuration["device"])
         else:
             raise Exception("model selection is invalid: " + self.config.model_configuration["model"])
-        
-        #TODO: enable users to choose between Adam or SGD optimizer. also enable users to choose between CrossEntropyLoss, MAELoss, MSELoss, etc. in the config.yaml
+       
+        #TODO: enable users to choose between Adam or SGD optimizer.
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.training_configuration["learning_rate"], weight_decay=self.config.training_configuration["weight_decay"])
-        
-        if self.config.model_configuration["load_model"]  == False:
-            if self.class_weights.shape[0] < 2:
-                self.loss_func = nn.CrossEntropyLoss()
-            else:
-                self.loss_func = nn.CrossEntropyLoss(weight=self.class_weights.float().to(self.config.model_configuration["device"]))
-     
-            #wandb.watch(self.model, log="all")
-            if self.log:
-                self.wandb.watch(self.model, log="all")
+       
+        #TODO: also enable users to choose between CrossEntropyLoss, MAELoss, MSELoss, etc. in the config.yaml
+        if self.class_weights.shape[0] < 2:
+            self.loss_func = nn.CrossEntropyLoss()
         else:
-            pass #TODO implement model loading functionality
+            self.loss_func = nn.CrossEntropyLoss(weight=self.class_weights.float().to(self.config.model_configuration["device"]))
+     
+        if self.log:
+            self.wandb.watch(self.model, log="all")
+
 
 
     # Pick between Standard Training and KFold Cross Validation Training
@@ -119,27 +117,38 @@ class Trainer:
 
     def inference(self):
         raise NotImplementedError
-    
+   
     def cross_valid(self):
         raise NotImplementedError
 
-    
+   
     def save_model(self):
         """Function to save the model."""
         saved_path = Path(self.config.model_configuration["model_save_path"]).resolve()
         os.makedirs(os.path.dirname(saved_path), exist_ok=True)
-        torch.save(self.model.state_dict(), str(saved_path))
+        torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+        }, str(saved_path))
         with open(os.path.dirname(saved_path) + "/model_parameters.txt", "w+") as f:
             f.write(str(self.config))
             f.write('\n')
             f.write(str(' '.join(sys.argv)))
+        print("Model saved.")
 
     def load_model(self):
         """Function to load the model."""
         saved_path = Path(self.config.model_configuration["model_load_path"]).resolve()
         if saved_path.exists():
             self.build_model()
-            self.model.load_state_dict(torch.load(str(saved_path)))
+            torch.cuda.empty_cache()
+            checkpoint = torch.load(str(saved_path), map_location="cpu")
+
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            self.model.to(self.config.model_configuration["device"])
             self.model.eval()
+
         else:
             raise FileNotFoundError("Failed to load model. Model load path does not exist: " + str(saved_path))
+        print("Model loaded from file.")
