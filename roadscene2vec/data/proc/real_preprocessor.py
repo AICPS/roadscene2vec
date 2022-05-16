@@ -39,7 +39,7 @@ class RealPreprocessor(prepproc):
                         continue #skip to next seq if ignore path exists
 
             self.dataset.data[seq] = self._load_images(path)
-            self.dataset.action_types[seq] = "lanechange" #path.stem.split('_')[2] #TODO: this is broken for carla. also, we cannot assume that our users will have their data in this format.
+            self.dataset.action_types[seq] = "lanechange"
             if label_path.exists():
                 with open(str(path/'label.txt'), 'r') as label_file:
                     lines = label_file.readlines()

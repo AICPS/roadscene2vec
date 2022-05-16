@@ -148,7 +148,7 @@ class SceneGraph:
             
 
     #parses actor dict and adds nodes to graph. this can be used for all actor types.
-    def add_actor_dict(self, key, actordict): #TODO test with signs and different actor types besides cars
+    def add_actor_dict(self, key, actordict):
         for actor_id, attr in actordict.items():
             # filter actors behind ego 
             n = Node(None, None, attr['name'], None)   #using the actor key as the node name and the dict as its attributes.
@@ -171,15 +171,6 @@ class SceneGraph:
                 self.add_node(n)
                 self.relation_extractor.add_mapping_to_relative_lanes(self, n)
             
-
-    #adds lanes and their dicts. constructs relation between each lane and the root road node.
-#    def add_lane_dict(self, lanedict):
-#        #TODO: can we filter out the lane that has no car on it?
-#        for idx, lane in enumerate(lanedict['lanes']):
-#            lane['lane_idx'] = idx
-#            n = Node("lane:"+str(idx), lane, "lane",  self.relation_extractor.actors.index("lane")) 
-#            self.add_node(n) #change
-#            self.add_relation([n, 'isIn', self.road_node])
             
 
     #add the contents of a whole framedict to the graph

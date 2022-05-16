@@ -1,6 +1,5 @@
 ---
 dataset_type: 'carla'
-#TODO: revise this configuration file
 location_data:
     input_path: '/louisccc/av/synthesis_data/271_carla'
     

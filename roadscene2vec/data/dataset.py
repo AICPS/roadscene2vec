@@ -87,7 +87,7 @@ class SceneGraphDataset(BaseDataset):
             self.action_types = action_types
 
 
-    # this is for creation of trainer input using carla data #TODO move this to scenegraph dataset class?
+    # this is for creation of trainer input using carla data 
     #=======================================================
     def process_carla_graph_sequences(self, scenegraphs, feature_list, frame_numbers = None, folder_name=None): #returns a dictionary containing sg metadata for each frame in a sequence
                                                             #default frame_numbers to len of sg dict that contains scenegraphs for each frame of the given sequence

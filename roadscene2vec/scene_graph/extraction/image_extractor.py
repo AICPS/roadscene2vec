@@ -73,7 +73,7 @@ class RealExtractor(ex):
                                                 platform=self.dataset_type)
 
                     self.dataset.scene_graphs[seq][frame] = scenegraph
-                self.dataset.action_types[seq] = "lanechange" #path.stem.split('_')[2] #TODO: this is broken for carla. also, we cannot assume that our users will have their data in this format.
+                self.dataset.action_types[seq] = "lanechange" 
                 if label_path.exists():
                     with open(str(path/'label.txt'), 'r') as label_file:
                         lines = label_file.readlines()

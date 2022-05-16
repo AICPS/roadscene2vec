@@ -25,7 +25,6 @@ class ResNet50_LSTM_Classifier(nn.Module):
         '''
         self.resnet = nn.Sequential(*list(models.resnet50(pretrained=True, progress=True).children())[:-1])
         
-        # TODO: verify lstm hidden size with louis
         # self.lstm1 = nn.LSTM(input_size=512, hidden_size=20)
         self.lstm1 = nn.LSTM(input_size=2048, hidden_size=20, batch_first=True)
         self.l1 = nn.Linear(in_features=20, out_features=2)

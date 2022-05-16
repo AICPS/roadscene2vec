@@ -291,7 +291,7 @@ class Scenegraph_Trainer(Trainer):
             num_safe_sequences = 0
             sum_predicted_risky_indices = 0 #sum is calculated as (value * (index+1))/sum(range(seq_len)) for each value and index in the sequence.
             sum_predicted_safe_indices = 0  #sum is calculated as ((1-value) * (index+1))/sum(range(seq_len)) for each value and index in the sequence.
-            inference_time = 0 #TODO: remove this metric
+            inference_time = 0 
             prof_result = ""
             correct_risky_seq = 0
             correct_safe_seq = 0
@@ -478,7 +478,6 @@ class Scenegraph_Trainer(Trainer):
 
     
     # Averages metrics after the end of each cross validation fold
-    #TODO: migrate this functionality to metrics instead of having the same code in all the trainers.
     def update_sg_cross_valid_metrics(self, outputs_train, labels_train, outputs_test, labels_test, metrics):
         if self.fold == 1:
             self.results['outputs_train'] = outputs_train

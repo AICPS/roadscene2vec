@@ -181,7 +181,7 @@ def visualize_real_image(extraction_config):
   if not os.path.exists(dataset_dir):
       raise FileNotFoundError(dataset_dir)
   all_sequence_dirs = [x for x in Path(dataset_dir).iterdir() if x.is_dir()]
-  all_sequence_dirs = sorted(all_sequence_dirs, key=lambda x: int(x.stem.split('_')[0]))  #TODO can't use this lamda to sort in the future
+  all_sequence_dirs = sorted(all_sequence_dirs, key=lambda x: int(x.stem.split('_')[0]))  
   for path in tqdm(all_sequence_dirs):
       sequence = extractor.load_images(path)
       for frame in sorted(sequence.keys()):
@@ -199,7 +199,7 @@ def visualize_carla(extraction_config):
   if not os.path.exists(dataset_dir):
       raise FileNotFoundError(dataset_dir)
   all_sequence_dirs = [x for x in Path(dataset_dir).iterdir() if x.is_dir()]
-  all_sequence_dirs = sorted(all_sequence_dirs, key=lambda x: int(x.stem.split('_')[0]))  #TODO can't use this lamda to sort in the future
+  all_sequence_dirs = sorted(all_sequence_dirs, key=lambda x: int(x.stem.split('_')[0])) 
   for path in tqdm(all_sequence_dirs):
     txt_path = sorted(list(glob("%s/**/*.json" % str(path/"scene_raw"), recursive=True)))[0]
     raw_images_path = Path(path/"raw_images")

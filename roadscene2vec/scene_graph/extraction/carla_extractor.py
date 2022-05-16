@@ -27,7 +27,7 @@ class CarlaExtractor(ex):
         self.dataset.folder_names = [path.stem for path in all_sequence_dirs]
         sg_extracted = {}
         for path in tqdm(all_sequence_dirs):
-              seq = int(path.stem.split('_')[0])#TODO: we cannot assume that our users will have their data in this format.
+              seq = int(path.stem.split('_')[0])
               self.dataset.action_types[seq] = path.stem.split('_')[1]
               label_path = (path/"label.txt").resolve()
               metadata_path = (path/"metadata.txt").resolve()
@@ -35,7 +35,7 @@ class CarlaExtractor(ex):
               if label_path.exists():
                   with open(str(path/'label.txt'), 'r') as label_file:
                       lines = label_file.readlines()
-                      l0 = 1.0 if float(lines[0].strip().split(",")[0]) >= 0 else 0.0 #is this correct or shld i just use raw values?
+                      l0 = 1.0 if float(lines[0].strip().split(",")[0]) >= 0 else 0.0 
                       self.dataset.labels[seq] = l0 
   
                 

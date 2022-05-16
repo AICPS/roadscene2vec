@@ -3,7 +3,6 @@ dataset_type: 'carla'
 location_data:
     input_path: 'C:/av_data/preprocessed_dataset.pkl'
     data_save_path: 'C:/av_data/sg_dataset.pkl' #where to save scenegraph dataset
-    #TODO: revise this configuration file
 
 relation_extraction_settings:
   framenum: 1000
