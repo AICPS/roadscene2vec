@@ -5,6 +5,7 @@ from pathlib import Path
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from argparse import ArgumentParser
 
 
 class BEV():
@@ -230,7 +231,8 @@ class BEV():
         plt.show()
 
 if __name__ == '__main__':
-    path = '/home/louisccc/NAS/louisccc/av/honda_data/filtered_clips/lanechange/6057_201702271632_lanechange/raw_images/33322.jpg'
-    #TODO: replace path with command line arg instead to enable user to input their own path.
+    ap = ArgumentParser(description='The parameters for training.')
+    ap.add_argument('--cal_im_path', type=str, default='/media/NAS-temp/louisccc/av/synthesis_data/1043_carla/22_lanechange/raw_images/00097095.jpg', help="The path defining location of image used to calibrate BEV.")
+    path = ap.parse_args().cal_im_path
     bev = BEV(path, mode='calibrate')
     bev.calibrate()
