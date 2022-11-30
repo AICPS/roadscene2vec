@@ -1,15 +1,13 @@
 import os
 import sys
 
-#import check_gpu as cg
-#os.environ['CUDA_VISIBLE_DEVICES'] = cg.get_free_gpu()
 sys.path.append(os.path.dirname(sys.path[0]))
 from learning.util.image_trainer import Image_Trainer
 from learning.util.scenegraph_trainer import Scenegraph_Trainer
 from util.config_parser import configuration
 import wandb
 
-#python 3_train_model.py --yaml_path /media/aicps/home/harsimrat/roadscene2vec/roadscene2vec/config/graph_learning_config.yaml 
+#python 3_train_model.py --yaml_path ../config/graph_learning_config.yaml 
 
 def train_Trainer(learning_config):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''
@@ -60,6 +58,7 @@ def train_Trainer(learning_config):
         raise ValueError("Task unrecognized")
 
     trainer.save_model()
+
 
 if __name__ == "__main__":
     # the entry of dynkg pipeline training

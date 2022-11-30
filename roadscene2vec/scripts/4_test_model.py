@@ -1,8 +1,6 @@
 import os
 import sys
 
-#import check_gpu as cg
-#os.environ['CUDA_VISIBLE_DEVICES'] = cg.get_free_gpu()
 sys.path.append(os.path.dirname(sys.path[0]))
 from learning.util.image_trainer import Image_Trainer
 from learning.util.scenegraph_trainer import Scenegraph_Trainer
@@ -10,7 +8,7 @@ from util.config_parser import configuration
 import wandb
 import torch.nn as nn
 
-#python 4_test_model.py --yaml_path /media/aicps/home/harsimrat/roadscene2vec/roadscene2vec/config/graph_learning_config.yaml 
+#python 4_test_model.py --yaml_path ../config/graph_learning_config.yaml 
 
 def test_Trainer(learning_config):
     ''' Training the dynamic kg algorithm with different attention layer choice.'''

@@ -7,7 +7,7 @@ import scene_graph.extraction.image_extractor as RealEx
 from util.config_parser import configuration
 from util.script_exceptions import Invalid_Dataset_Type
 
-#python 2_extract_scene_graphs.py --yaml_path /home/harsimrat/sg2vec/roadscene2vec/config/scenegraph_extraction_config.yaml
+#python 2_extract_scene_graphs.py --yaml_path ../config/scenegraph_extraction_config.yaml
 
 '''This script runs scene graph extraction of Carla or Real data'''
 def extract_scene_graphs():

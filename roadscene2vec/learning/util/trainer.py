@@ -46,6 +46,7 @@ class Trainer:
            
         self.toGPU = lambda x, dtype: torch.as_tensor(x, dtype=dtype, device=self.config.model_configuration['device'])
         self.initialize_best_metrics()
+        self.class_weights = torch.tensor([1,1]) #initialize a default value
 
 
     #defines initial values for "best" metrics so that they can be updated during training by the model.
@@ -126,10 +127,7 @@ class Trainer:
         """Function to save the model."""
         saved_path = Path(self.config.model_configuration["model_save_path"]).resolve()
         os.makedirs(os.path.dirname(saved_path), exist_ok=True)
-        torch.save({
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
-        }, str(saved_path))
+        torch.save(self.model.state_dict(), str(saved_path))
         with open(os.path.dirname(saved_path) + "/model_parameters.txt", "w+") as f:
             f.write(str(self.config))
             f.write('\n')
@@ -141,14 +139,8 @@ class Trainer:
         saved_path = Path(self.config.model_configuration["model_load_path"]).resolve()
         if saved_path.exists():
             self.build_model()
-            torch.cuda.empty_cache()
-            checkpoint = torch.load(str(saved_path), map_location="cpu")
-
-            self.model.load_state_dict(checkpoint['model_state_dict'])
-            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            self.model.to(self.config.model_configuration["device"])
+            self.model.load_state_dict(torch.load(str(saved_path)))
             self.model.eval()
-
         else:
             raise FileNotFoundError("Failed to load model. Model load path does not exist: " + str(saved_path))
         print("Model loaded from file.")
