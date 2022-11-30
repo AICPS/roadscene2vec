@@ -4,14 +4,13 @@ sys.path.append(str(Path("../../")))
 import torch
 import numpy as np
 from sklearn.utils.class_weight import compute_class_weight
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from tqdm import tqdm
 from roadscene2vec.learning.util.trainer import Trainer
 from roadscene2vec.data.dataset import SceneGraphDataset
-from torch_geometric.data import Data, DataLoader, DataListLoader
+from torch_geometric.data import Data
+from torch_geometric.loader import DataLoader, DataListLoader
 from roadscene2vec.learning.util.metrics import get_metrics, log_wandb, log_wandb_transfer_learning 
 
 

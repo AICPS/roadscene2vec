@@ -8,8 +8,6 @@ from roadscene2vec.learning.util.trainer import Trainer
 from roadscene2vec.data.dataset import RawImageDataset
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.utils import shuffle
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from roadscene2vec.learning.util.metrics import get_metrics, log_im_wandb, log_wandb_categories

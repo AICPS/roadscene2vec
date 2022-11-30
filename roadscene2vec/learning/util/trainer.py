@@ -8,8 +8,6 @@ import torch.optim as optim
 import torch.nn as nn
 import numpy as np
 import random
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from roadscene2vec.learning.model.cnn_lstm import CNN_LSTM_Classifier
 from roadscene2vec.learning.model.lstm import LSTM_Classifier
@@ -126,10 +124,11 @@ class Trainer:
     def save_model(self):
         """Function to save the model."""
         saved_path = Path(self.config.model_configuration["model_save_path"]).resolve()
-        os.makedirs(os.path.dirname(saved_path), exist_ok=True)
+        if os.path.dirname(saved_path) != '':
+            os.makedirs(os.path.dirname(saved_path), exist_ok=True)
         torch.save(self.model.state_dict(), str(saved_path))
-        with open(os.path.dirname(saved_path) + "/model_parameters.txt", "w+") as f:
-            f.write(str(self.config))
+        with open(Path.joinpath(saved_path.parent, 'model_parameters.txt'), "w+") as f:
+            f.write(str(self.config.__dict__))
             f.write('\n')
             f.write(str(' '.join(sys.argv)))
         print("Model saved.")

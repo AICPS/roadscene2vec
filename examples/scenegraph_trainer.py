@@ -4,8 +4,6 @@ sys.path.append(str(Path("../../")))
 import torch
 import numpy as np
 from sklearn.utils.class_weight import compute_class_weight
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.utils import resample
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from tqdm import tqdm
