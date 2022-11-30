@@ -71,7 +71,7 @@ class MRGIN(nn.Module):
             self.attn = Attention(self.lstm_dim2)
         
         self.fc2 = Linear(self.lstm_dim2, self.num_classes)
-
+        self.conv = nn.ModuleList(self.conv)
 
 
     def forward(self, x, edge_index, edge_attr, batch=None):
