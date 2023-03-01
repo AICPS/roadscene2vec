@@ -1,18 +1,15 @@
 import os
-import sys
 from io import BytesIO
 from pathlib import Path
 from pprint import pprint
 
 from glob import glob
 import json
-import numpy as np
 
 import cv2
 from PIL import Image
 from networkx.drawing import nx_agraph, nx_pydot
 
-sys.path.append(str(Path("../../")))
 from roadscene2vec.scene_graph.scene_graph import SceneGraph
 from roadscene2vec.scene_graph.extraction.image_extractor import RealExtractor
 from roadscene2vec.scene_graph.extraction.carla_extractor import CarlaExtractor
@@ -51,7 +48,7 @@ def get_data(extractor):
   return temp.load().data
 
 def get_bev(extractor):
-  return extractor.bev#.warpPerspective(frame)
+  return extractor.bev
 
 def get_bbox(extractor, frame):
   return extractor.get_bounding_boxes(frame)
@@ -121,7 +118,6 @@ def draw(extractor, frame, bbox, bev, sg, save_path=None):
   plt.title("Object Detection Image")
   plt.axis('off')
   
-  #import pdb;pdb.set_trace()
   bev_img = draw_bev(bev, frame)
   plt.subplot(2, 3, 3)
   plt.imshow(cv2_color(bev_img))

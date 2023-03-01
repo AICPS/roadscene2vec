@@ -1,19 +1,10 @@
 import math
 import itertools
-import sys
-from pathlib import Path
-import itertools
-import math
-import sys
-from pathlib import Path
-
-sys.path.append(str(Path("../../")))
 from roadscene2vec.scene_graph.nodes import Node
-#from roadscene2vec.scene_graph.nodes import ObjectNode
 
 
-#This class extracts relations for every pair of entities in a scene
 class RelationExtractor:
+    '''extracts relations for every pair of entities in a scene'''
     def __init__(self, config):
         self.conf = config
         self.actors = config.relation_extraction_settings["ACTOR_NAMES"]
@@ -23,10 +14,8 @@ class RelationExtractor:
         self.proximity_rels = self.conf.relation_extraction_settings["PROXIMITY_THRESHOLDS"]
         self.directional_rels = config.relation_extraction_settings["DIRECTIONAL_THRESHOLDS"]
         self.relational_colors = {i[0]:i[1] for i in config.relation_extraction_settings["RELATION_COLORS"]}
-        #import pdb; pdb.set_trace()
         self.LANE_THRESHOLD = self.conf.relation_extraction_settings['LANE_THRESHOLD'] # feet. if object's center is more than this distance away from ego's center, build left or right lane relation
-#         feet. if object's center is within this distance of ego's center, build middle lane relation
-        #self.CENTER_LANE_THRESHOLD = self.conf.relation_extraction_settings['CENTER_LANE_THRESHOLD']
+        #self.CENTER_LANE_THRESHOLD = self.conf.relation_extraction_settings['CENTER_LANE_THRESHOLD']# feet. if object's center is within this distance of ego's center, build middle lane relation
 
     def get_actor_type(self, actor):
         for actor_ in range(len(self.actors)):
@@ -45,8 +34,9 @@ class RelationExtractor:
     def get_config(self):
         return self.conf
             
-    #takes in two entities and extracts all relations between those two entities. extracted relations are bidirectional    
+
     def extract_relations(self, actor1, actor2):
+        '''takes in two entities and extracts all relations between those two entities. extracted relations are bidirectional'''
         type1 ,_ = self.get_actor_type(actor1)
         type2 ,_= self.get_actor_type(actor2)
         relations_list = []
@@ -69,13 +59,12 @@ class RelationExtractor:
         scene_graph.add_node(scene_graph.left_lane)
         scene_graph.add_node(scene_graph.right_lane)
         scene_graph.add_node(scene_graph.middle_lane)
-        #if "isIn" in self.directional_rels:
+
         scene_graph.add_relation([scene_graph.left_lane, "isIn", scene_graph.road_node]) #if we assume lanes and roads must be in graph, then just check to see if isIn in the wanted relations?
         scene_graph.add_relation([scene_graph.right_lane, "isIn", scene_graph.road_node])
         scene_graph.add_relation([scene_graph.middle_lane, "isIn", scene_graph.road_node])
         scene_graph.add_relation([scene_graph.egoNode, "isIn", scene_graph.middle_lane])    
-#         else:
-#             raise ValueError("isIn relation absent from config")
+
 
     def add_mapping_to_relative_lanes(self, scene_graph, object_node): #leave this in if we can assume that there will always be lanes
         if self.conf.dataset_type == "carla":
@@ -106,8 +95,8 @@ class RelationExtractor:
                 scene_graph.add_relations(self.extract_relations(node1, node2))
                 
 
-    #copied from get_node_embeddings(). rotates coordinates to be relative to ego vector.
     def rotate_coords(self, scene_graph, x, y): 
+        '''copied from get_node_embeddings(). rotates coordinates to be relative to ego vector.'''
         new_x = (x*scene_graph.ego_cos_term) + (y*scene_graph.ego_sin_term)
         new_y = ((-x)*scene_graph.ego_sin_term) + (y*scene_graph.ego_cos_term)
         return new_x, new_y
@@ -134,8 +123,9 @@ class RelationExtractor:
         return relation_list
     
 #~~~~~~~~~~~~~~~~~~UTILITY FUNCTIONS~~~~~~~~~~~~~~~~~~~~~~
-    #return euclidean distance between actors
+    
     def euclidean_distance(self, actor1, actor2):
+        '''return euclidean distance between actors'''
         if self.conf.dataset_type == "carla":
             l1 = actor1.attr['location']
             l2 = actor2.attr['location']
@@ -144,11 +134,11 @@ class RelationExtractor:
             l1 = (actor1.attr['location_x'], actor1.attr['location_y'])
             l2 = (actor2.attr['location_x'], actor2.attr['location_y'])
             distance = math.sqrt((l1[0] - l2[0])**2 + (l1[1] - l2[1])**2)
-            # print(actor1, actor2, distance)
         return distance
         
-    #check if an actor is in a certain lane
+
     def in_lane(self, actor1, actor2):
+        '''check if an actor is in a certain lane'''
         if 'lane_idx' in actor1.attr.keys():
             # calculate the distance bewteen actor1 and actor2
             # if it is below 3.5 then they have is in relation.
@@ -164,7 +154,7 @@ class RelationExtractor:
         else:
             return False
     
-    def create_proximity_relations(self, actor1, actor2): #how
+    def create_proximity_relations(self, actor1, actor2):
         for relation in self.proximity_rels:
             if self.euclidean_distance(actor1, actor2) <= relation[1]:
                 return [[actor1,relation[0], actor2]]
@@ -192,15 +182,9 @@ class RelationExtractor:
             degree = math.degrees(math.atan2(y1, x1)) - \
                  math.degrees(math.atan2(y2, x2))
         
-        
         if degree < 0: 
             degree += 360
-        
         degree %= 360
-         
-
-#         if degree < 0:
-#             degree = 0
              
         for direction_rel in self.directional_rels:
             list_of_ranges = direction_rel[1]
@@ -208,7 +192,6 @@ class RelationExtractor:
                 if degree >= ranges[0] and degree <= ranges[1]:
                     relation_list.append([actor2, direction_rel[0], actor1])           
     
-        
         if self.conf.dataset_type == "carla":
             if actor2.attr['lane_idx'] < actor1.attr['lane_idx']: # actor2 to the left of actor1 
                 relation_list.append([actor2, "toLeftOf", actor1])
@@ -216,8 +199,6 @@ class RelationExtractor:
                 relation_list.append([actor2, "toRightOf", actor1])
                
         elif self.conf.dataset_type == "image":  
-#            if abs(actor2.attr['location_x'] - actor1.attr['location_x']) <= self.CENTER_LANE_THRESHOLD:
-#                pass
             if (actor2.attr['location_x'] - actor1.attr['location_x']) <= self.LANE_THRESHOLD and (actor2.attr['location_x'] - actor1.attr['location_x']) >= -self.LANE_THRESHOLD: #if in the same lane, don't want left or right relations to be built
                 pass
             # actor2 to the left of actor1

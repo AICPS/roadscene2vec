@@ -2,12 +2,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import networkx as nx
-import sys
-from pathlib import Path
-sys.path.append(str(Path("../../")))
-#from roadscene2vec.scene_graph.relation_extractor import Relations, ActorType, RELATION_COLORS 
 from roadscene2vec.scene_graph.nodes import Node
-#from roadscene2vec.scene_graph.nodes import Node
 from networkx.drawing import nx_pydot
 import pandas as pd
 import torch
@@ -37,7 +32,6 @@ class SceneGraph:
             self.add_node(self.road_node)   # adding the road as the root node
     
             # set ego location to middle-bottom of image.
-            # set ego location to middle-bottom of image.
             self.ego_location = bev.get_projected_point(
                                     bev.params['width']/2, 
                                     bev.params['height'])
@@ -48,7 +42,6 @@ class SceneGraph:
             
             #import pdb; pdb.set_trace()
             self.egoNode = Node('ego car', {
-
                                        'location_x': self.ego_location[0], 
                                        'location_y': self.ego_location[1]}, 
                                        'ego_car', self.relation_extractor.actors.index("ego_car"))
@@ -69,7 +62,6 @@ class SceneGraph:
         for idx, (box, label) in enumerate(zip(boxes, labels)):
             box = box.cpu().numpy().tolist()
             class_name = coco_class_names[label]
-            #import pdb; pdb.set_trace()
             attr = {'left': box[0], 'top': box[1], 'right': box[2], 'bottom': box[3]}
             
             # exclude vehicle dashboard
@@ -131,7 +123,6 @@ class SceneGraph:
 
 # add all pair-wise relations between two nodes
     def add_relations(self, relations_list):
-        #import pdb; pdb.set_trace()
         for relation in relations_list:
             self.add_relation(relation)
     
@@ -164,19 +155,14 @@ class SceneGraph:
               import pdb; pdb.set_trace()
             
             if (degree <=190 or degree >= 350):#TEST FOR CARLA #if degree <= 80 or (degree >=280 and degree <= 360):
-                # if abs(self.egoNode.attr['lane_idx'] - attr['lane_idx']) <= 1 \
-                # or ("invading_lane" in self.egoNode.attr and (2*self.egoNode.attr['invading_lane'] - self.egoNode.attr['orig_lane_idx']) == attr['lane_idx']):
                 n.name = n.label.lower() + "_" + actor_id
                 
                 self.add_node(n)
                 self.relation_extractor.add_mapping_to_relative_lanes(self, n)
             
-            
 
-    #add the contents of a whole framedict to the graph
     def parse_json(self, framedict):
-        
-#        self.egoNode = Node("ego:"+framedict['ego']['name'], framedict['ego'], 'CAR')    
+        '''add the contents of a whole framedict to the graph'''
         self.egoNode = Node('ego car', framedict['ego'], 'ego_car', self.relation_extractor.actors.index("ego_car"))
         self.add_node(self.egoNode) #change
 
@@ -186,7 +172,6 @@ class SceneGraph:
         self.ego_sin_term = math.sin(self.ego_yaw)
         self.relation_extractor.extract_relative_lanes(self)
 
-#         self.relation_extractor = RelationExtractor(self.egoNode) #see line 99
         for key, attrs in framedict.items():   
             if key == 'actors' or key == 'sign':
               self.add_actor_dict(key, attrs)
@@ -194,7 +179,6 @@ class SceneGraph:
         
 
     def visualize(self, filename=None):
-        #import pdb;pdb.set_trace()
         A = nx_pydot.to_pydot(self.g)
         A.write_png(filename)
 
@@ -273,9 +257,6 @@ class SceneGraph:
             raise NameError("Ego not found in scenegraph")
 
         def get_real_embedding(node, row):
-            # for key in self.feature_list:
-            #     if key in node.attr:
-            #         row[key] = node.attr[key]
             row['type_'+str(node.value)] = 1  # assign 1hot class label
             return row
 
@@ -289,14 +270,12 @@ class SceneGraph:
         embedding = pd.DataFrame(data=rows, columns=feature_list)
         embedding = embedding.fillna(value=0)  # fill in NaN with zeros
         embedding = torch.FloatTensor(embedding.values)
-        #import pdb; pdb.set_trace()
         return embedding
 
     def get_real_image_edge_embeddings(self, node_name2idx):
       edge_index = []
       edge_attr = []
       for src, dst, edge in self.g.edges(data=True):
-          #import pdb; pdb.set_trace()
           edge_index.append((node_name2idx[src], node_name2idx[dst]))
           edge_attr.append(edge['value'])
   
