@@ -30,14 +30,18 @@ class Image_Trainer(Trainer):
             self.training_data = np.stack([i[0] for i in self.training_data], axis=0) #resulting shape is (sequence, image, channel, height, width)
             self.testing_data = np.stack([i[0] for i in self.testing_data], axis=0)
             if self.config.training_configuration['task_type'] == "sequence_classification":
-              self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.training_labels), self.training_labels))
+              self.class_weights = torch.from_numpy(compute_class_weight('balanced', 
+                                                                         classes=np.unique(self.training_labels), 
+                                                                         y=self.training_labels))
               if self.config.training_configuration["n_fold"] <= 1:
                   print("Number of Training Sequences Included: ", len(self.training_data))
                   print("Number of Testing Sequences Included: ", len(self.testing_data))
                   print("Num of Training Labels in Each Class: " + str(np.unique(self.training_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights))
                   print("Num of Testing Labels in Each Class: " + str(np.unique(self.testing_labels, return_counts=True)[1]) + ", Class Weights: " + str(self.class_weights)) 
             elif self.config.training_configuration['task_type'] == "collision_prediction":
-                self.class_weights = torch.from_numpy(compute_class_weight('balanced', np.unique(self.total_train_labels), self.total_train_labels))
+                self.class_weights = torch.from_numpy(compute_class_weight('balanced', 
+                                                                           classes=np.unique(self.total_train_labels), 
+                                                                           y=self.total_train_labels))
                 if self.config.training_configuration["n_fold"] <= 1:
                     print("Number of Training Sequences Included: ", len(self.training_data))
                     print("Number of Testing Sequences Included: ", len(self.testing_data))
