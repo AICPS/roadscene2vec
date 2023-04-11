@@ -144,6 +144,9 @@ image_settings: #path to bev calibration data. only for use with real image scen
     BEV_PATH: '/bev.json'
 ```
 
+NOTE: If you would like to use a new image dataset, we recommend generating a new birds-eye view transformation (bev.json) using the instructions provided here:
+https://github.com/AICPS/roadscene2vec/blob/main/roadscene2vec/scene_graph/extraction/bev
+
 ### Use Case 2: Using Scene-Graph Embeddings for Subjective Risk Assessment
 This use case demonstrates how to use roadscene2vec to classify a given sequence of images as safe or unsafe using risk assessment, which aims to model a driver's subjective analysis of risk on the road. In the sample script examples/use_case_2.py, RealExtractor first extracts a scene graph dataset from the directory of sequences using specifications in the use_case_2_scenegraph_extraction_config.yaml file. Finally, the use_case_2_scenegraph_learning_config.yaml file is used to create a Scenegraph_Trainer object which loads a pre-trained model to output the risk assessment for the created scene graph dataset. 
 
