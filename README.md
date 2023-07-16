@@ -77,6 +77,11 @@ Once this setup is completed, install the rest of the requirements from requirem
 pip install -r requirements.txt
 ```
 
+If you want to visualize the extracted scene-graphs, as is done in Use-Case 1, you can either use the networkx or pydot/graphviz APIs. Typically graphviz works better so our code defaults to graphviz. In order to render these graphs, you must have [graphviz](https://www.graphviz.org/download/) installed on your system along with the corresponding python package installed as follows:
+```
+conda install -c anaconda graphviz
+```
+
 If you want to use our CARLA dataset generation tools then you need to have the CARLA simulator and Python API installed as described here:
 https://github.com/carla-simulator/carla/releases
 
